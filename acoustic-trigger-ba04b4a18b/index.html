@@ -374,9 +374,10 @@ abbreviation characters), so new enum values or wider fields need a payload vers
 bytes and a soft erasure). RS corrects any 2 bad bytes of 12; the CRC catches RS
 mis-corrections. The receiver derives <code>duration = splits × length</code> for the model-reset
 timer, and <code>splits</code> tells it how many switch beeps to expect in relays.</p>
-<p>Burst lengths at 96 bits: <code>mfsk16</code> 2.6 s, <code>mfsk16f</code> 2.0 s, <code>mfsk32</code> 2.2 s, <code>css30</code> 3.9 s,
-ggwave 2.2 s. The shortest announcement (SRTU, beep at 7.8 s) still leaves room for one burst
-plus a repeat.</p>
+<p>Burst lengths at 96 bits: <code>mfsk16</code> 2.6 s, <code>mfsk16f</code> 2.0 s, <code>mfsk32</code> 2.2 s, <code>mfsk4</code> 3.5 s,
+<code>css30</code> 4.0 s, ggwave 2.4 s. In the shortest announcement (SRTU, beep at 7.8 s) the
+<code>mfsk16</code>/<code>mfsk16f</code>/<code>mfsk32</code> and ggwave bursts fit twice (starting at 0.8 s, 150 ms gap);
+<code>css30</code> and <code>mfsk4</code> fit only once.</p>
 <h2 id="4-channel-model-acoustic_triggerchannelpy">4. Channel model (<code>acoustic_trigger/channel.py</code>)</h2>
 <p>Playback → air → Android mic, each stage optional:</p>
 <ol>
@@ -412,7 +413,8 @@ that was already unrecoverable; the soft-erasure retry found a codeword that pas
 chance (~1/256 per attempt). Mitigation for
 production: embed the burst twice and require agreement, or a CRC-16 if the spare bit budget
 is rearranged. <strong>False positives on unmodified tracks and 2 min of noise: 0 / 144 receiver
-runs</strong> (<code>false_positives.py</code>).</p>
+runs</strong> (<code>false_positives.py</code>), decoding every preamble peak above a lowered threshold (1955
+candidates, 4–32 per recording), as a continuously running detector would.</p>
 <h3 id="decode-rate-by-scheme-band-and-embedding-level-all-channels-all-tracks">Decode rate by scheme, band and embedding level (all channels, all tracks)</h3>
 <pre><code>level_db      -28.0  -20.0  -12.0
 kind    band                     
