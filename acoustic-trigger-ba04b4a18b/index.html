@@ -15,13 +15,16 @@ table{border-collapse:collapse;margin:1em 0} th,td{border:1px solid #d0d7de;padd
 .examples td{min-width:330px} .examples audio{width:100%;height:36px}
 .examples img{width:100%;margin-top:6px;border:1px solid #d0d7de}
 .lbl{font-size:13px;color:#59636e;margin-top:4px}
+.dl{font-size:12px} .ok{color:#1a7f37;font-weight:600} .bad{color:#cf222e;font-weight:600}
+.examples.mp3 td{min-width:300px} .examples.mp3 img{margin-top:0}
 .note{background:#fff8c5;border:1px solid #d4a72c66;padding:8px 12px;border-radius:6px;font-size:14px}
 @media (prefers-color-scheme:dark){body{background:#0d1117;color:#e6edf3}
   code,pre{background:#161b22} th,td,h2,.examples img{border-color:#30363d} a{color:#4493f8}
-  .band,.lbl{color:#9198a1} .note{background:#2e2a1a;border-color:#6e5a1a}}
+  .band,.lbl{color:#9198a1} .note{background:#2e2a1a;border-color:#6e5a1a}
+  .ok{color:#3fb950} .bad{color:#f85149}}
 </style></head>
 <body>
-<p class="note">Unlisted research notes. Simulation-only proof of concept.</p>
+<p class="note">Unlisted research notes. Simulation-only proof of concept. <a href="downloads/acoustic-trigger-examples.zip" download>Download all example audio</a> (27 MB zip: lossless FLAC and MP3 examples) · <a href="#listening-examples">lossless examples</a> · <a href="#mp3-listening-examples">MP3 examples</a></p>
 <h1 id="acoustic-event-trigger-poc">Acoustic event trigger — POC</h1>
 <p><strong>Goal.</strong> Give the Lens Android app a fallback signal (when the orchestrator websocket is
 unavailable) that says <em>"an event of type X and duration Y is about to start, and the start
@@ -36,6 +39,8 @@ uv venv .venv &amp;&amp; uv pip install -p .venv/bin/python -r requirements.txt
 .venv/bin/python run_experiments.py              # full grid (~20 min), writes out/results.csv
 .venv/bin/python false_positives.py              # receivers over unmodified tracks + noise (~20 min)
 .venv/bin/python make_examples.py                # listening examples -&gt; out/examples/
+.venv/bin/python measure_codec_cutoff.py         # effective low-pass of each MP3 encoder -&gt; out/codec_cutoff.csv
+.venv/bin/python run_mp3_experiments.py          # MP3 distribution grid (~11 min), writes out/mp3_results.csv
 </code></pre>
 
 <section id="listening-examples">
@@ -55,79 +60,103 @@ early in the announcement; the dashed line marks the start beep. Click a spectro
 <tr><th>mfsk16<br><span class="band">band mid</span></th><td>
   <div class="lbl">Embedded track</div>
   <audio controls preload="none" src="audio/SRSS_mfsk16_mid_-12dB.flac"></audio>
+  <a class="dl" href="audio/SRSS_mfsk16_mid_-12dB.flac" download>download FLAC</a>
   <div class="lbl">As heard, gym 15 m</div>
   <audio controls preload="none" src="audio/SRSS_mfsk16_mid_-12dB_as_heard_gym15m.flac"></audio>
+  <a class="dl" href="audio/SRSS_mfsk16_mid_-12dB_as_heard_gym15m.flac" download>download FLAC</a>
   <a href="spectrograms/SRSS_mfsk16_mid_-12dB.png"><img loading="lazy" src="spectrograms/SRSS_mfsk16_mid_-12dB.png" alt="Spectrogram of SRSS_mfsk16_mid_-12dB"></a>
 </td><td>
   <div class="lbl">Embedded track</div>
   <audio controls preload="none" src="audio/SRSS_mfsk16_mid_-20dB.flac"></audio>
+  <a class="dl" href="audio/SRSS_mfsk16_mid_-20dB.flac" download>download FLAC</a>
   <div class="lbl">As heard, gym 15 m</div>
   <audio controls preload="none" src="audio/SRSS_mfsk16_mid_-20dB_as_heard_gym15m.flac"></audio>
+  <a class="dl" href="audio/SRSS_mfsk16_mid_-20dB_as_heard_gym15m.flac" download>download FLAC</a>
   <a href="spectrograms/SRSS_mfsk16_mid_-20dB.png"><img loading="lazy" src="spectrograms/SRSS_mfsk16_mid_-20dB.png" alt="Spectrogram of SRSS_mfsk16_mid_-20dB"></a>
 </td></tr>
 <tr><th>mfsk16f<br><span class="band">band mid</span></th><td>
   <div class="lbl">Embedded track</div>
   <audio controls preload="none" src="audio/SRSS_mfsk16f_mid_-12dB.flac"></audio>
+  <a class="dl" href="audio/SRSS_mfsk16f_mid_-12dB.flac" download>download FLAC</a>
   <div class="lbl">As heard, gym 15 m</div>
   <audio controls preload="none" src="audio/SRSS_mfsk16f_mid_-12dB_as_heard_gym15m.flac"></audio>
+  <a class="dl" href="audio/SRSS_mfsk16f_mid_-12dB_as_heard_gym15m.flac" download>download FLAC</a>
   <a href="spectrograms/SRSS_mfsk16f_mid_-12dB.png"><img loading="lazy" src="spectrograms/SRSS_mfsk16f_mid_-12dB.png" alt="Spectrogram of SRSS_mfsk16f_mid_-12dB"></a>
 </td><td>
   <div class="lbl">Embedded track</div>
   <audio controls preload="none" src="audio/SRSS_mfsk16f_mid_-20dB.flac"></audio>
+  <a class="dl" href="audio/SRSS_mfsk16f_mid_-20dB.flac" download>download FLAC</a>
   <div class="lbl">As heard, gym 15 m</div>
   <audio controls preload="none" src="audio/SRSS_mfsk16f_mid_-20dB_as_heard_gym15m.flac"></audio>
+  <a class="dl" href="audio/SRSS_mfsk16f_mid_-20dB_as_heard_gym15m.flac" download>download FLAC</a>
   <a href="spectrograms/SRSS_mfsk16f_mid_-20dB.png"><img loading="lazy" src="spectrograms/SRSS_mfsk16f_mid_-20dB.png" alt="Spectrogram of SRSS_mfsk16f_mid_-20dB"></a>
 </td></tr>
 <tr><th>mfsk32<br><span class="band">band mid</span></th><td>
   <div class="lbl">Embedded track</div>
   <audio controls preload="none" src="audio/SRSS_mfsk32_mid_-12dB.flac"></audio>
+  <a class="dl" href="audio/SRSS_mfsk32_mid_-12dB.flac" download>download FLAC</a>
   <div class="lbl">As heard, gym 15 m</div>
   <audio controls preload="none" src="audio/SRSS_mfsk32_mid_-12dB_as_heard_gym15m.flac"></audio>
+  <a class="dl" href="audio/SRSS_mfsk32_mid_-12dB_as_heard_gym15m.flac" download>download FLAC</a>
   <a href="spectrograms/SRSS_mfsk32_mid_-12dB.png"><img loading="lazy" src="spectrograms/SRSS_mfsk32_mid_-12dB.png" alt="Spectrogram of SRSS_mfsk32_mid_-12dB"></a>
 </td><td>
   <div class="lbl">Embedded track</div>
   <audio controls preload="none" src="audio/SRSS_mfsk32_mid_-20dB.flac"></audio>
+  <a class="dl" href="audio/SRSS_mfsk32_mid_-20dB.flac" download>download FLAC</a>
   <div class="lbl">As heard, gym 15 m</div>
   <audio controls preload="none" src="audio/SRSS_mfsk32_mid_-20dB_as_heard_gym15m.flac"></audio>
+  <a class="dl" href="audio/SRSS_mfsk32_mid_-20dB_as_heard_gym15m.flac" download>download FLAC</a>
   <a href="spectrograms/SRSS_mfsk32_mid_-20dB.png"><img loading="lazy" src="spectrograms/SRSS_mfsk32_mid_-20dB.png" alt="Spectrogram of SRSS_mfsk32_mid_-20dB"></a>
 </td></tr>
 <tr><th>mfsk16<br><span class="band">band low</span></th><td>
   <div class="lbl">Embedded track</div>
   <audio controls preload="none" src="audio/SRSS_mfsk16_low_-12dB.flac"></audio>
+  <a class="dl" href="audio/SRSS_mfsk16_low_-12dB.flac" download>download FLAC</a>
   <div class="lbl">As heard, gym 15 m</div>
   <audio controls preload="none" src="audio/SRSS_mfsk16_low_-12dB_as_heard_gym15m.flac"></audio>
+  <a class="dl" href="audio/SRSS_mfsk16_low_-12dB_as_heard_gym15m.flac" download>download FLAC</a>
   <a href="spectrograms/SRSS_mfsk16_low_-12dB.png"><img loading="lazy" src="spectrograms/SRSS_mfsk16_low_-12dB.png" alt="Spectrogram of SRSS_mfsk16_low_-12dB"></a>
 </td><td>
   <div class="lbl">Embedded track</div>
   <audio controls preload="none" src="audio/SRSS_mfsk16_low_-20dB.flac"></audio>
+  <a class="dl" href="audio/SRSS_mfsk16_low_-20dB.flac" download>download FLAC</a>
   <div class="lbl">As heard, gym 15 m</div>
   <audio controls preload="none" src="audio/SRSS_mfsk16_low_-20dB_as_heard_gym15m.flac"></audio>
+  <a class="dl" href="audio/SRSS_mfsk16_low_-20dB_as_heard_gym15m.flac" download>download FLAC</a>
   <a href="spectrograms/SRSS_mfsk16_low_-20dB.png"><img loading="lazy" src="spectrograms/SRSS_mfsk16_low_-20dB.png" alt="Spectrogram of SRSS_mfsk16_low_-20dB"></a>
 </td></tr>
 <tr><th>css30<br><span class="band">band mid</span></th><td>
   <div class="lbl">Embedded track</div>
   <audio controls preload="none" src="audio/SRSS_css30_mid_-12dB.flac"></audio>
+  <a class="dl" href="audio/SRSS_css30_mid_-12dB.flac" download>download FLAC</a>
   <div class="lbl">As heard, gym 15 m</div>
   <audio controls preload="none" src="audio/SRSS_css30_mid_-12dB_as_heard_gym15m.flac"></audio>
+  <a class="dl" href="audio/SRSS_css30_mid_-12dB_as_heard_gym15m.flac" download>download FLAC</a>
   <a href="spectrograms/SRSS_css30_mid_-12dB.png"><img loading="lazy" src="spectrograms/SRSS_css30_mid_-12dB.png" alt="Spectrogram of SRSS_css30_mid_-12dB"></a>
 </td><td>
   <div class="lbl">Embedded track</div>
   <audio controls preload="none" src="audio/SRSS_css30_mid_-20dB.flac"></audio>
+  <a class="dl" href="audio/SRSS_css30_mid_-20dB.flac" download>download FLAC</a>
   <div class="lbl">As heard, gym 15 m</div>
   <audio controls preload="none" src="audio/SRSS_css30_mid_-20dB_as_heard_gym15m.flac"></audio>
+  <a class="dl" href="audio/SRSS_css30_mid_-20dB_as_heard_gym15m.flac" download>download FLAC</a>
   <a href="spectrograms/SRSS_css30_mid_-20dB.png"><img loading="lazy" src="spectrograms/SRSS_css30_mid_-20dB.png" alt="Spectrogram of SRSS_css30_mid_-20dB"></a>
 </td></tr>
 <tr><th>ggwave<br><span class="band">band -</span></th><td>
   <div class="lbl">Embedded track</div>
   <audio controls preload="none" src="audio/SRSS_ggwave_-_-12dB.flac"></audio>
+  <a class="dl" href="audio/SRSS_ggwave_-_-12dB.flac" download>download FLAC</a>
   <div class="lbl">As heard, gym 15 m</div>
   <audio controls preload="none" src="audio/SRSS_ggwave_-_-12dB_as_heard_gym15m.flac"></audio>
+  <a class="dl" href="audio/SRSS_ggwave_-_-12dB_as_heard_gym15m.flac" download>download FLAC</a>
   <a href="spectrograms/SRSS_ggwave_-_-12dB.png"><img loading="lazy" src="spectrograms/SRSS_ggwave_-_-12dB.png" alt="Spectrogram of SRSS_ggwave_-_-12dB"></a>
 </td><td>
   <div class="lbl">Embedded track</div>
   <audio controls preload="none" src="audio/SRSS_ggwave_-_-20dB.flac"></audio>
+  <a class="dl" href="audio/SRSS_ggwave_-_-20dB.flac" download>download FLAC</a>
   <div class="lbl">As heard, gym 15 m</div>
   <audio controls preload="none" src="audio/SRSS_ggwave_-_-20dB_as_heard_gym15m.flac"></audio>
+  <a class="dl" href="audio/SRSS_ggwave_-_-20dB_as_heard_gym15m.flac" download>download FLAC</a>
   <a href="spectrograms/SRSS_ggwave_-_-20dB.png"><img loading="lazy" src="spectrograms/SRSS_ggwave_-_-20dB.png" alt="Spectrogram of SRSS_ggwave_-_-20dB"></a>
 </td></tr>
 </tbody></table></div>
@@ -349,7 +378,9 @@ plus a repeat.</p>
 <h2 id="4-channel-model-acoustic_triggerchannelpy">4. Channel model (<code>acoustic_trigger/channel.py</code>)</h2>
 <p>Playback → air → Android mic, each stage optional:</p>
 <ol>
-<li>Organiser <strong>re-encodes</strong> the file as 128 kbps MP3 (ffmpeg/lame round trip).</li>
+<li>Organiser <strong>re-encodes</strong> the file as 128 kbps MP3 (ffmpeg/lame round trip). This is a
+   <em>mono</em> encode, which keeps everything up to 20 kHz; a stereo encode at the same bitrate
+   cuts at 16.6 kHz and erases the burst. §7 covers MP3 distribution properly.</li>
 <li><strong>Speaker</strong>: 2nd-order low-pass at 16 or 18 kHz (cheap horn / Bluetooth codec), optional
    soft clipping (<code>tanh</code>, drive 3 = badly overdriven PA).</li>
 <li><strong>Room</strong>: pyroomacoustics shoebox — <code>gym</code> 32×20×9 m, <code>hall</code> 60×40×14 m, <code>gym_dead</code>
@@ -371,47 +402,49 @@ gym_15m_snr5_clip, hall_30m_snr0, gym_dead_15m_snr-5</code>.</p>
 <code>hi</code> 18.5–20 kHz, <code>mid</code> 17.5–19.5 kHz, <code>low</code> 16–18 kHz.</p>
 <h2 id="5-results">5. Results</h2>
 <p>Full grid: 7 tracks × 16 scheme/band combos × 3 levels × 11 channels = <strong>3696 runs</strong>
-(<code>out/results.csv</code>, ~15 min). Decode = the full lookup code recovered exactly.</p>
-<p><strong>Wrong decodes (passed RS + CRC but wrong payload): 1 / 3696</strong> — <code>css30</code>, <code>hi</code> band,
-−28 dBFS, 25 m / 0 dB SNR, i.e. a burst that was already unrecoverable; the soft-erasure
-retry found a codeword that passed CRC-8 by chance (~1/256 per attempt). Mitigation for
+(<code>out/results.csv</code>, ~10 min). Decode = the full lookup code recovered exactly. Noise seeds
+are derived from the run parameters, so the grid is reproducible.</p>
+<p><strong>Wrong decodes (passed RS + CRC but wrong payload): 0 / 3696.</strong> An earlier run with
+different noise seeds had 1 — <code>css30</code>, <code>hi</code> band, −28 dBFS, 25 m / 0 dB SNR, i.e. a burst
+that was already unrecoverable; the soft-erasure retry found a codeword that passed CRC-8 by
+chance (~1/256 per attempt). Mitigation for
 production: embed the burst twice and require agreement, or a CRC-16 if the spare bit budget
 is rearranged. <strong>False positives on unmodified tracks and 2 min of noise: 0 / 144 receiver
 runs</strong> (<code>false_positives.py</code>).</p>
 <h3 id="decode-rate-by-scheme-band-and-embedding-level-all-channels-all-tracks">Decode rate by scheme, band and embedding level (all channels, all tracks)</h3>
 <pre><code>level_db      -28.0  -20.0  -12.0
 kind    band                     
-css30   hi     0.70   0.88   1.00
-        low    0.82   0.92   0.91
-        mid    0.81   0.97   1.00
-ggwave  -      0.32   0.75   0.88
-mfsk16  hi     0.87   1.00   1.00
-        low    0.95   1.00   1.00
-        mid    0.92   1.00   1.00
-mfsk16f hi     0.83   1.00   1.00
+css30   hi     0.73   0.90   1.00
+        low    0.83   0.94   0.97
+        mid    0.81   0.99   1.00
+ggwave  -      0.19   0.70   0.95
+mfsk16  hi     0.83   1.00   1.00
         low    0.97   1.00   1.00
-        mid    0.88   1.00   1.00
-mfsk32  hi     0.83   1.00   1.00
-        low    0.96   1.00   1.00
-        mid    0.96   1.00   1.00
-mfsk4   hi     0.73   1.00   1.00
-        low    0.92   1.00   1.00
-        mid    0.77   0.96   0.95
+        mid    0.84   1.00   1.00
+mfsk16f hi     0.81   0.99   1.00
+        low    0.88   1.00   1.00
+        mid    0.84   1.00   1.00
+mfsk32  hi     0.83   0.99   1.00
+        low    0.97   1.00   1.00
+        mid    0.90   1.00   1.00
+mfsk4   hi     0.69   0.92   1.00
+        low    0.88   0.96   0.94
+        mid    0.62   0.92   0.99
 </code></pre>
 <h3 id="decode-rate-by-channel-and-scheme-all-bands-levels-tracks">Decode rate by channel and scheme (all bands, levels, tracks)</h3>
 <pre><code>kind                              css30  ggwave  mfsk16  mfsk16f  mfsk32  mfsk4
 channel                                                                        
 anechoic_clean                     1.00    0.86    1.00     1.00    1.00   1.00
-gym_15m_snr5                       1.00    0.76    1.00     1.00    1.00   1.00
-gym_15m_snr5_clip                  1.00    0.90    1.00     1.00    1.00   1.00
-gym_15m_snr5_mic-lpf19k_drift100   1.00    0.76    1.00     1.00    1.00   1.00
+gym_15m_snr5                       1.00    0.67    1.00     1.00    1.00   1.00
+gym_15m_snr5_clip                  1.00    0.67    1.00     1.00    1.00   1.00
+gym_15m_snr5_mic-lpf19k_drift100   1.00    0.71    1.00     1.00    1.00   0.98
 gym_15m_snr5_mp3-128               1.00    0.67    1.00     1.00    1.00   1.00
-gym_15m_snr5_spk-lpf16k            0.87    0.62    0.92     0.90    0.90   0.73
-gym_15m_snr5_spk-lpf18k            0.97    0.76    1.00     0.98    1.00   0.83
-gym_25m_snr0                       0.37    0.33    0.95     0.95    0.95   0.92
+gym_15m_snr5_spk-lpf16k            0.87    0.62    0.86     0.84    0.94   0.70
+gym_15m_snr5_spk-lpf18k            1.00    0.62    1.00     1.00    1.00   0.97
+gym_25m_snr0                       0.56    0.33    0.94     0.89    0.89   0.60
 gym_5m_snr10                       1.00    1.00    1.00     1.00    1.00   1.00
-gym_dead_15m_snr-5                 1.00    0.48    1.00     1.00    1.00   0.98
-hall_30m_snr0                      0.59    0.05    0.81     0.78    0.84   0.71
+gym_dead_15m_snr-5                 1.00    0.43    1.00     1.00    1.00   0.71
+hall_30m_snr0                      0.54    0.19    0.78     0.68    0.79   0.71
 </code></pre>
 <h3 id="the-three-hardest-channels-at-20-dbfs-by-band">The three hardest channels at −20 dBFS, by band</h3>
 <pre><code>band                                -    hi   low   mid
@@ -419,16 +452,16 @@ channel                 kind
 gym_15m_snr5_spk-lpf16k css30     NaN  1.00  1.00  1.00
                         ggwave   0.86   NaN   NaN   NaN
                         mfsk16    NaN  1.00  1.00  1.00
-                        mfsk16f   NaN  1.00  1.00  1.00
-                        mfsk32    NaN  1.00  1.00  1.00
-                        mfsk4     NaN  1.00  1.00  0.86
-gym_25m_snr0            css30     NaN  0.43  0.14  0.71
-                        ggwave   0.29   NaN   NaN   NaN
+                        mfsk16f   NaN  0.86  1.00  1.00
+                        mfsk32    NaN  0.86  1.00  1.00
+                        mfsk4     NaN  0.71  1.00  0.57
+gym_25m_snr0            css30     NaN  0.86  0.43  0.86
+                        ggwave   0.00   NaN   NaN   NaN
                         mfsk16    NaN  1.00  1.00  1.00
                         mfsk16f   NaN  1.00  1.00  1.00
                         mfsk32    NaN  1.00  1.00  1.00
-                        mfsk4     NaN  1.00  1.00  1.00
-hall_30m_snr0           css30     NaN  0.29  1.00  1.00
+                        mfsk4     NaN  1.00  0.57  0.86
+hall_30m_snr0           css30     NaN  0.00  0.86  1.00
                         ggwave   0.00   NaN   NaN   NaN
                         mfsk16    NaN  1.00  1.00  1.00
                         mfsk16f   NaN  1.00  1.00  1.00
@@ -437,21 +470,23 @@ hall_30m_snr0           css30     NaN  0.29  1.00  1.00
 </code></pre>
 <h3 id="beep-timing">Beep timing</h3>
 <p>The receiver predicts the start beep from <code>burst position + payload offset</code>, then confirms it
-with the 578 Hz detector. Over 3274 decoded runs the prediction was within
-<strong>±120 ms (σ ≈ 26 ms)</strong> of the detected beep for all schemes; the per-scheme mean offsets of
-−22…+24 ms are constant and would be calibrated out. 6 runs had the <em>beep detector</em> fire
-~1.7 s early on a spoken word; gating the detector to the predicted window (which the payload
-gives us) removes that class of error. The beep was found in 100 % of runs on every channel.</p>
+with the 578 Hz detector. Over 3229 decoded runs the prediction was within
+<strong>±155 ms (σ ≈ 25 ms)</strong> of the detected beep for all schemes; the per-scheme mean offsets of
+−20…+25 ms are constant and would be calibrated out. 55 runs, all in the close
+<code>gym_5m_snr10</code> channel on four tracks, had the <em>beep detector</em> fire ~2 s early on a spoken
+word; gating the detector to the predicted window (which the payload gives us) removes that
+class of error. The beep was found in 100 % of runs on every channel.</p>
 <h3 id="reading-the-numbers">Reading the numbers</h3>
 <ul>
 <li><strong>MFSK with guard intervals wins in reverberation.</strong> <code>mfsk16</code>, <code>mfsk16f</code> and <code>mfsk32</code>
-  all decode 100 % at −20 and −12 dBFS in every band on every channel except the two
-  hardest (16 kHz speaker low-pass: 90–92 %, 60 m hall at 30 m: 78–84 % — both recover to
-  100 % in the <code>mid</code>/<code>low</code> bands at −20 dBFS, the failures are the <code>hi</code> band at −28 dBFS).
-  Still ≥ 83 % at −28 dBFS.</li>
-<li><strong>Shorter MFSK variants cost nothing measurable.</strong> <code>mfsk16f</code> (2.0 s burst) and <code>mfsk32</code>
-  (2.2 s) match <code>mfsk16</code> (2.6 s) within noise, so there is room to repeat the burst inside
-  even the shortest announcement.</li>
+  decode 100 % at −12 dBFS everywhere, and at −20 dBFS everywhere except the <code>hi</code> band
+  behind a 16 kHz speaker low-pass (86 % for <code>mfsk16f</code>/<code>mfsk32</code>). All other failures are at
+  −28 dBFS, concentrated in the two hardest channels (60 m hall at 30 m: 5–38 %; 16 kHz
+  speaker low-pass: 57–86 %). Averaged over every channel, ≥ 81 % at −28 dBFS.</li>
+<li><strong>Shorter MFSK variants cost nothing at −20 dBFS.</strong> <code>mfsk16f</code> (2.0 s burst) and <code>mfsk32</code>
+  (2.2 s) match <code>mfsk16</code> (2.6 s) at −20 and −12 dBFS, so there is room to repeat the burst
+  inside even the shortest announcement. At −28 dBFS the shorter symbols lose margin first
+  (hall: <code>mfsk16f</code> 5 % vs <code>mfsk16</code> 33 %).</li>
 <li><strong>CSS is second.</strong> <code>css30</code> is 100 % in the 15 m cases but drops at 25 m / 0 dB. Matched
   filtering does compress echoes, but 30 ms sweeps carry ~3× less energy per bit than an
   80 ms tone, and in a gym with RT60 ≈ 1 s in-band that energy margin matters more than the
@@ -485,7 +520,8 @@ device can arm itself and then lock to the real beep.</p>
 <li><strong>Audibility check</strong> with a few young athletes in a quiet room at competition PA level.</li>
 <li><strong>Track production</strong>: a script that takes the official IJRU track, finds the beep,
    embeds the burst twice in the announcement (repetition is free and closes the CRC-8 hole),
-   and exports WAV + 320 kbps MP3. Keep the official track otherwise untouched.</li>
+   and exports WAV plus a mono MP3 (any CBR bitrate) or a 320 kbps / V0 stereo MP3 (§7).
+   Keep the official track otherwise untouched.</li>
 <li><strong>Android receiver</strong>: <code>AudioRecord</code> at 48 kHz mono in the same process as the camera
    <code>MediaRecorder</code> (same-UID concurrent capture is allowed on Android 10+; needs checking
    against the HLS recording path in <code>RecorderWrapper.kt</code>). Detector runs continuously,
@@ -496,4 +532,274 @@ device can arm itself and then lock to the real beep.</p>
 <li>Later hardening: repeat-burst combining, per-device calibration of the constant timing
    offset, and a version bump path in the payload for future fields (heat/station id).</li>
 </ol>
+<h2 id="7-phase-2-mp3-distribution">7. Phase 2: MP3 distribution</h2>
+<p>Organisers will play an MP3, not a WAV, and may re-encode whatever they are given. Phase 2
+asks whether the burst survives that. <code>run_mp3_experiments.py</code> embeds the burst exactly as
+in §5, MP3-encodes the embedded announcement with LAME (<code>acoustic_trigger/codec.py</code>),
+decodes it, downmixes to mono (a PA sums the channels) and then runs the playback/air/mic
+channel. Every encoder reuses the lossless run's noise seed, so differences come from the
+codec alone.</p>
+<p>Grid: 7 tracks × 16 scheme/band combos × 3 levels × 19 encodings × 3 channels
+(<code>anechoic_clean</code>, <code>gym_15m_snr5</code>, <code>gym_25m_snr0</code>) = <strong>19 152 runs</strong> (<code>out/mp3_results.csv</code>,
+~11 min on 10 cores). Encodings: lossless reference; CBR 96/128/160/192/256/320 kbps and
+VBR V0/V2, each as mono and stereo; and CBR 128/192 stereo with LAME's low-pass forced to
+20 kHz (<code>-cutoff 20000</code>). <strong>Wrong decodes: 0.</strong></p>
+<h3 id="what-the-encoder-does-to-the-band">What the encoder does to the band</h3>
+<p>LAME chooses its low-pass from the bitrate <em>per channel</em>, so the channel layout matters more
+than the nominal bitrate. Measured with <code>measure_codec_cutoff.py</code> (frequency where the round
+trip falls 10 dB below the input, on SRSS with a −30 dBFS noise probe):</p>
+<table>
+<thead>
+<tr>
+<th>Encoder</th>
+<th style="text-align: right;">Mono cutoff</th>
+<th style="text-align: right;">Stereo cutoff</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>CBR 96</td>
+<td style="text-align: right;">20.1 kHz</td>
+<td style="text-align: right;">15.2 kHz</td>
+</tr>
+<tr>
+<td>CBR 128</td>
+<td style="text-align: right;">20.1 kHz</td>
+<td style="text-align: right;">16.6 kHz</td>
+</tr>
+<tr>
+<td>CBR 160</td>
+<td style="text-align: right;">20.1 kHz</td>
+<td style="text-align: right;">17.3 kHz</td>
+</tr>
+<tr>
+<td>CBR 192</td>
+<td style="text-align: right;">20.1 kHz</td>
+<td style="text-align: right;">18.7 kHz</td>
+</tr>
+<tr>
+<td>CBR 256</td>
+<td style="text-align: right;">20.1 kHz</td>
+<td style="text-align: right;">19.4 kHz</td>
+</tr>
+<tr>
+<td>CBR 320</td>
+<td style="text-align: right;">20.0 kHz</td>
+<td style="text-align: right;">20.0 kHz</td>
+</tr>
+<tr>
+<td>VBR V2 ("standard" preset)</td>
+<td style="text-align: right;"><strong>18.7 kHz</strong></td>
+<td style="text-align: right;">18.6 kHz</td>
+</tr>
+<tr>
+<td>VBR V0</td>
+<td style="text-align: right;">none</td>
+<td style="text-align: right;">none</td>
+</tr>
+<tr>
+<td>CBR 128/192 stereo, <code>-cutoff 20000</code></td>
+<td style="text-align: right;">–</td>
+<td style="text-align: right;">20.0 kHz</td>
+</tr>
+</tbody>
+</table>
+<p>The official IJRU files are mono 320 kbps, which is why §5's <code>mp3-128</code> channel (a mono
+encode) cost nothing. Stereo files at the same bitrate behave very differently.</p>
+<h3 id="decode-rate-recommended-schemes-mfsk16f-mfsk32-at-20-dbfs">Decode rate, recommended schemes (<code>mfsk16f</code> + <code>mfsk32</code>) at −20 dBFS</h3>
+<table>
+<thead>
+<tr>
+<th>Encoding</th>
+<th style="text-align: right;"><code>hi</code> 18.5–20 kHz</th>
+<th style="text-align: right;"><code>mid</code> 17.5–19.5 kHz</th>
+<th style="text-align: right;"><code>low</code> 16–18 kHz</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>lossless, any mono CBR 96–320, V0 (mono or stereo), CBR 320 stereo</td>
+<td style="text-align: right;">1.00</td>
+<td style="text-align: right;">1.00</td>
+<td style="text-align: right;">1.00</td>
+</tr>
+<tr>
+<td>CBR 128 / 192 stereo with <code>-cutoff 20000</code></td>
+<td style="text-align: right;">1.00</td>
+<td style="text-align: right;">1.00</td>
+<td style="text-align: right;">1.00</td>
+</tr>
+<tr>
+<td>CBR 256 stereo</td>
+<td style="text-align: right;">0.12</td>
+<td style="text-align: right;">0.98</td>
+<td style="text-align: right;">1.00</td>
+</tr>
+<tr>
+<td>CBR 192 stereo</td>
+<td style="text-align: right;">0.00</td>
+<td style="text-align: right;">0.10</td>
+<td style="text-align: right;">1.00</td>
+</tr>
+<tr>
+<td>VBR V2 mono</td>
+<td style="text-align: right;">0.00</td>
+<td style="text-align: right;">0.12</td>
+<td style="text-align: right;">1.00</td>
+</tr>
+<tr>
+<td>VBR V2 stereo</td>
+<td style="text-align: right;">0.00</td>
+<td style="text-align: right;">0.05</td>
+<td style="text-align: right;">1.00</td>
+</tr>
+<tr>
+<td>CBR 160 stereo</td>
+<td style="text-align: right;">0.00</td>
+<td style="text-align: right;">0.00</td>
+<td style="text-align: right;">0.31</td>
+</tr>
+<tr>
+<td>CBR 96 / 128 stereo</td>
+<td style="text-align: right;">0.00</td>
+<td style="text-align: right;">0.00</td>
+<td style="text-align: right;">0.00</td>
+</tr>
+</tbody>
+</table>
+<p>Each cell averages the three channels (clean, gym 15 m / 5 dB, gym 25 m / 0 dB) over 7
+tracks; per-channel rates follow the same pattern, because a band the encoder removes is
+gone before the room is involved. Where the encoder keeps the band, the decode rate matches
+lossless at every level, including the −28 dBFS margin cases (e.g. <code>mid</code> −28 dBFS through
+the gym channels: lossless 0.71, mono CBR 96 0.75, CBR 128 stereo + 20 kHz cutoff 0.68),
+and the beep prediction error is unchanged (median 25 ms in the 15 m gym).</p>
+<p>The other schemes follow the cutoff the same way: anything with energy above the cutoff
+fails. <code>ggwave</code> (15–19.5 kHz) is lost by every stereo encode below 256 kbps and by V2.</p>
+<h3 id="reading-the-numbers_1">Reading the numbers</h3>
+<ul>
+<li><strong>MP3 is not the problem; the encoder's low-pass is.</strong> When the burst band is below the
+  cutoff, MP3 at any bitrate down to 96 kbps changes nothing measurable. When it is above,
+  the burst is erased even with no room and no noise, and no receiver tuning recovers it.</li>
+<li><strong>192 kbps is only safe in mono.</strong> A 192 kbps stereo MP3 cuts at 18.7 kHz and removes most
+  of the recommended <code>mid</code> band; a mono one keeps everything.</li>
+<li><strong>LAME's V2 preset is a trap even in mono</strong> (18.7 kHz cutoff), and it is the most common
+  "good quality" setting in ripping tools.</li>
+<li><strong>The <code>low</code> band (16–18 kHz) is the robust fallback.</strong> It survives every encoding at
+  192 kbps stereo or above, plus V2, at the cost of being more audible (§5).</li>
+<li><strong>Forcing the cutoff fixes stereo.</strong> <code>-cutoff 20000</code> (LAME <code>--lowpass 20</code>) makes even
+  128 kbps stereo indistinguishable from lossless. This only helps for files we produce; an
+  organiser's re-encode will use the defaults.</li>
+</ul>
+<h3 id="recommendation-update">Recommendation update</h3>
+<ul>
+<li>Ship the track as <strong>mono</strong> (the IJRU originals already are) and/or <strong>320 kbps or V0</strong>.
+  Also ship the WAV for anyone who wants it.</li>
+<li>Keep <code>mid</code> as the primary band, but <strong>repeat the burst in the <code>low</code> band</strong>: at least one
+  copy survives every encoding tested at 192 kbps stereo or above, and V2. The phone can run
+  a detector per band on the same mic stream (§3); this two-band layout is simulated only
+  per band here, not yet as one combined track.</li>
+<li>Tell organisers not to re-encode, and add a check to the track-production script that
+  decodes the exported MP3 and runs <code>receive()</code> before the file is published.</li>
+<li>Bluetooth codecs (SBC/AAC) between laptop and PA are the next distribution risk with the
+  same failure mode; §5's 16/18 kHz speaker low-pass channels approximate them, but the
+  real-air test (§6 step 1) should include a Bluetooth leg.</li>
+</ul>
+<section id="mp3-listening-examples">
+<h3>MP3 listening examples</h3>
+<p>The recommended burst (<code>mfsk16f</code>, −20 dBFS) in SRSS, encoded the ways an organiser
+might. These are the actual MP3 files, so your browser plays exactly what a laptop would. The
+<em>as heard</em> capture runs through the same 15 m gym channel as above, and the label says
+whether the receiver recovered the code from it. In the spectrograms of the failing encodes,
+the encoder's low-pass is a flat ceiling across the whole track: burst tones above it are gone,
+and losing those symbols is enough to lose the code.</p>
+<div class="scroll"><table class="examples mp3">
+<thead><tr><th>Encoding</th><th>Audio</th><th>Spectrogram</th></tr></thead>
+<tbody>
+<tr><th>192 kbps mono<br>
+<span class="band">mfsk16f, band mid</span><br>
+<span class="ok">decodes</span></th>
+<td>
+  <div class="lbl">MP3 file</div>
+  <audio controls preload="none" src="mp3/SRSS_mfsk16f_mid_-20dB_cbr192_mono.mp3"></audio>
+  <a class="dl" href="mp3/SRSS_mfsk16f_mid_-20dB_cbr192_mono.mp3" download>download MP3</a>
+  <div class="lbl">As heard, gym 15 m</div>
+  <audio controls preload="none" src="mp3/SRSS_mfsk16f_mid_-20dB_cbr192_mono_as_heard_gym15m.flac"></audio>
+  <a class="dl" href="mp3/SRSS_mfsk16f_mid_-20dB_cbr192_mono_as_heard_gym15m.flac" download>download FLAC</a>
+</td>
+<td><a href="spectrograms/SRSS_mfsk16f_mid_-20dB_cbr192_mono.png"><img loading="lazy" src="spectrograms/SRSS_mfsk16f_mid_-20dB_cbr192_mono.png" alt="Spectrogram of SRSS_mfsk16f_mid_-20dB_cbr192_mono"></a></td></tr>
+<tr><th>192 kbps stereo<br>
+<span class="band">mfsk16f, band mid</span><br>
+<span class="bad">does not decode</span></th>
+<td>
+  <div class="lbl">MP3 file</div>
+  <audio controls preload="none" src="mp3/SRSS_mfsk16f_mid_-20dB_cbr192_stereo.mp3"></audio>
+  <a class="dl" href="mp3/SRSS_mfsk16f_mid_-20dB_cbr192_stereo.mp3" download>download MP3</a>
+  <div class="lbl">As heard, gym 15 m</div>
+  <audio controls preload="none" src="mp3/SRSS_mfsk16f_mid_-20dB_cbr192_stereo_as_heard_gym15m.flac"></audio>
+  <a class="dl" href="mp3/SRSS_mfsk16f_mid_-20dB_cbr192_stereo_as_heard_gym15m.flac" download>download FLAC</a>
+</td>
+<td><a href="spectrograms/SRSS_mfsk16f_mid_-20dB_cbr192_stereo.png"><img loading="lazy" src="spectrograms/SRSS_mfsk16f_mid_-20dB_cbr192_stereo.png" alt="Spectrogram of SRSS_mfsk16f_mid_-20dB_cbr192_stereo"></a></td></tr>
+<tr><th>VBR V2 stereo (LAME standard preset)<br>
+<span class="band">mfsk16f, band mid</span><br>
+<span class="bad">does not decode</span></th>
+<td>
+  <div class="lbl">MP3 file</div>
+  <audio controls preload="none" src="mp3/SRSS_mfsk16f_mid_-20dB_v2_stereo.mp3"></audio>
+  <a class="dl" href="mp3/SRSS_mfsk16f_mid_-20dB_v2_stereo.mp3" download>download MP3</a>
+  <div class="lbl">As heard, gym 15 m</div>
+  <audio controls preload="none" src="mp3/SRSS_mfsk16f_mid_-20dB_v2_stereo_as_heard_gym15m.flac"></audio>
+  <a class="dl" href="mp3/SRSS_mfsk16f_mid_-20dB_v2_stereo_as_heard_gym15m.flac" download>download FLAC</a>
+</td>
+<td><a href="spectrograms/SRSS_mfsk16f_mid_-20dB_v2_stereo.png"><img loading="lazy" src="spectrograms/SRSS_mfsk16f_mid_-20dB_v2_stereo.png" alt="Spectrogram of SRSS_mfsk16f_mid_-20dB_v2_stereo"></a></td></tr>
+<tr><th>128 kbps stereo<br>
+<span class="band">mfsk16f, band mid</span><br>
+<span class="bad">does not decode</span></th>
+<td>
+  <div class="lbl">MP3 file</div>
+  <audio controls preload="none" src="mp3/SRSS_mfsk16f_mid_-20dB_cbr128_stereo.mp3"></audio>
+  <a class="dl" href="mp3/SRSS_mfsk16f_mid_-20dB_cbr128_stereo.mp3" download>download MP3</a>
+  <div class="lbl">As heard, gym 15 m</div>
+  <audio controls preload="none" src="mp3/SRSS_mfsk16f_mid_-20dB_cbr128_stereo_as_heard_gym15m.flac"></audio>
+  <a class="dl" href="mp3/SRSS_mfsk16f_mid_-20dB_cbr128_stereo_as_heard_gym15m.flac" download>download FLAC</a>
+</td>
+<td><a href="spectrograms/SRSS_mfsk16f_mid_-20dB_cbr128_stereo.png"><img loading="lazy" src="spectrograms/SRSS_mfsk16f_mid_-20dB_cbr128_stereo.png" alt="Spectrogram of SRSS_mfsk16f_mid_-20dB_cbr128_stereo"></a></td></tr>
+<tr><th>128 kbps stereo, low-pass forced to 20 kHz<br>
+<span class="band">mfsk16f, band mid</span><br>
+<span class="ok">decodes</span></th>
+<td>
+  <div class="lbl">MP3 file</div>
+  <audio controls preload="none" src="mp3/SRSS_mfsk16f_mid_-20dB_cbr128_stereo_lp20k.mp3"></audio>
+  <a class="dl" href="mp3/SRSS_mfsk16f_mid_-20dB_cbr128_stereo_lp20k.mp3" download>download MP3</a>
+  <div class="lbl">As heard, gym 15 m</div>
+  <audio controls preload="none" src="mp3/SRSS_mfsk16f_mid_-20dB_cbr128_stereo_lp20k_as_heard_gym15m.flac"></audio>
+  <a class="dl" href="mp3/SRSS_mfsk16f_mid_-20dB_cbr128_stereo_lp20k_as_heard_gym15m.flac" download>download FLAC</a>
+</td>
+<td><a href="spectrograms/SRSS_mfsk16f_mid_-20dB_cbr128_stereo_lp20k.png"><img loading="lazy" src="spectrograms/SRSS_mfsk16f_mid_-20dB_cbr128_stereo_lp20k.png" alt="Spectrogram of SRSS_mfsk16f_mid_-20dB_cbr128_stereo_lp20k"></a></td></tr>
+<tr><th>320 kbps stereo<br>
+<span class="band">mfsk16f, band mid</span><br>
+<span class="ok">decodes</span></th>
+<td>
+  <div class="lbl">MP3 file</div>
+  <audio controls preload="none" src="mp3/SRSS_mfsk16f_mid_-20dB_cbr320_stereo.mp3"></audio>
+  <a class="dl" href="mp3/SRSS_mfsk16f_mid_-20dB_cbr320_stereo.mp3" download>download MP3</a>
+  <div class="lbl">As heard, gym 15 m</div>
+  <audio controls preload="none" src="mp3/SRSS_mfsk16f_mid_-20dB_cbr320_stereo_as_heard_gym15m.flac"></audio>
+  <a class="dl" href="mp3/SRSS_mfsk16f_mid_-20dB_cbr320_stereo_as_heard_gym15m.flac" download>download FLAC</a>
+</td>
+<td><a href="spectrograms/SRSS_mfsk16f_mid_-20dB_cbr320_stereo.png"><img loading="lazy" src="spectrograms/SRSS_mfsk16f_mid_-20dB_cbr320_stereo.png" alt="Spectrogram of SRSS_mfsk16f_mid_-20dB_cbr320_stereo"></a></td></tr>
+<tr><th>192 kbps stereo<br>
+<span class="band">mfsk16f, band low</span><br>
+<span class="ok">decodes</span></th>
+<td>
+  <div class="lbl">MP3 file</div>
+  <audio controls preload="none" src="mp3/SRSS_mfsk16f_low_-20dB_cbr192_stereo.mp3"></audio>
+  <a class="dl" href="mp3/SRSS_mfsk16f_low_-20dB_cbr192_stereo.mp3" download>download MP3</a>
+  <div class="lbl">As heard, gym 15 m</div>
+  <audio controls preload="none" src="mp3/SRSS_mfsk16f_low_-20dB_cbr192_stereo_as_heard_gym15m.flac"></audio>
+  <a class="dl" href="mp3/SRSS_mfsk16f_low_-20dB_cbr192_stereo_as_heard_gym15m.flac" download>download FLAC</a>
+</td>
+<td><a href="spectrograms/SRSS_mfsk16f_low_-20dB_cbr192_stereo.png"><img loading="lazy" src="spectrograms/SRSS_mfsk16f_low_-20dB_cbr192_stereo.png" alt="Spectrogram of SRSS_mfsk16f_low_-20dB_cbr192_stereo"></a></td></tr>
+</tbody></table></div>
+</section>
+
 </body></html>
