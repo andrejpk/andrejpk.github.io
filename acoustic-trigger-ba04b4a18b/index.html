@@ -474,8 +474,9 @@ hall_30m_snr0           css30     NaN  0.00  0.86  1.00
 </code></pre>
 <h3 id="beep-timing">Beep timing</h3>
 <p>The receiver predicts the start beep from <code>burst position + payload offset</code>, then confirms it
-with the 578 Hz detector. Over 3229 decoded runs the prediction was within
-<strong>±155 ms (σ ≈ 25 ms)</strong> of the detected beep for all schemes; the per-scheme mean offsets of
+with the 578 Hz detector. Over 3229 decoded CSS and MFSK runs the prediction was within
+<strong>±155 ms (σ ≈ 25 ms)</strong> of the detected beep (ggwave is excluded: its Python API gives no
+burst position, so <code>receive()</code> makes no prediction for it); the per-scheme mean offsets of
 −20…+25 ms are constant and would be calibrated out. 55 runs, all in the close
 <code>gym_5m_snr10</code> channel on four tracks, had the <em>beep detector</em> fire ~2 s early on a spoken
 word; gating the detector to the predicted window (which the payload gives us) removes that
