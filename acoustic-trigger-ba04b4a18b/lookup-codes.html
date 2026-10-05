@@ -1,0 +1,593 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex,nofollow,noarchive">
+<meta name="referrer" content="no-referrer">
+<title>Event definition lookup codes</title>
+<style>
+body{font:16px/1.55 -apple-system,BlinkMacSystemFont,"Segoe UI",Helvetica,Arial,sans-serif;
+  max-width:1100px;margin:0 auto;padding:24px;color:#1f2328;background:#fff}
+h1,h2,h3{line-height:1.25} h2{border-bottom:1px solid #d0d7de;padding-bottom:.3em;margin-top:2em}
+code{background:#f6f8fa;padding:.1em .35em;border-radius:4px;font-size:90%}
+pre{background:#f6f8fa;padding:12px;overflow:auto;border-radius:6px} pre code{padding:0;background:none}
+table{border-collapse:collapse;margin:1em 0} th,td{border:1px solid #d0d7de;padding:6px 10px;vertical-align:top}
+.scroll{overflow-x:auto} .examples th{white-space:nowrap;text-align:left} .band{font-weight:400;color:#59636e}
+.examples td{min-width:330px} .examples audio{width:100%;height:36px}
+.examples img{width:100%;margin-top:6px;border:1px solid #d0d7de}
+.lbl{font-size:13px;color:#59636e;margin-top:4px}
+.note{background:#fff8c5;border:1px solid #d4a72c66;padding:8px 12px;border-radius:6px;font-size:14px}
+@media (prefers-color-scheme:dark){body{background:#0d1117;color:#e6edf3}
+  code,pre{background:#161b22} th,td,h2,.examples img{border-color:#30363d} a{color:#4493f8}
+  .band,.lbl{color:#9198a1} .note{background:#2e2a1a;border-color:#6e5a1a}}
+</style></head>
+<body>
+<p><a href="./">← Acoustic event trigger POC</a></p>
+<h1 id="event-definition-lookup-codes">Event Definition Lookup Codes</h1>
+<p>Event definition lookup codes are a standardized way to code an event definition (e.g. SRS 1x30, DDPF) in a way reliably between systems. They are encoded in this format:</p>
+<pre><code>e.[org].[type].[discipline].[event_abbr].[num_participants].[timing]
+</code></pre>
+<p>For example:</p>
+<pre><code>e.ijru.fs.dd.ddpf.4.75
+</code></pre>
+<p>Is the IJRU event Double Dutch Pairs Freestyle.</p>
+<p>It's important to note that the event definition lookup code DOES NOT contain any information about which rules or judges etc are involved in the event</p>
+<h2 id="organization-org">Organization, <code>[org]</code></h2>
+<p>Organization's abbreviation is:</p>
+<table>
+<thead>
+<tr>
+<th>Abbr</th>
+<th>Organization</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>ijru</td>
+<td>International Jump Rope Union</td>
+</tr>
+<tr>
+<td>rsc</td>
+<td>Rope Skipping Canada</td>
+</tr>
+<tr>
+<td>ddc</td>
+<td>DDC World</td>
+</tr>
+<tr>
+<td>sau</td>
+<td>Skipping Australia</td>
+</tr>
+<tr>
+<td>amjrf</td>
+<td>American Jump Rope Federation</td>
+</tr>
+<tr>
+<td>svgf</td>
+<td>Swedish Gymnastics Federation</td>
+</tr>
+<tr>
+<td>ajru</td>
+<td>Asian Jump Rope Union</td>
+</tr>
+</tbody>
+</table>
+<h2 id="event-type-type">Event Type, <code>[type]</code></h2>
+<p>Defines the type of event:</p>
+<table>
+<thead>
+<tr>
+<th>Abbr</th>
+<th>Type</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>sp</td>
+<td>Speed/Power/Endurance</td>
+</tr>
+<tr>
+<td>fs</td>
+<td>Freestyle</td>
+</tr>
+<tr>
+<td>oa</td>
+<td>Overall</td>
+</tr>
+</tbody>
+</table>
+<h2 id="discipline-discipline">Discipline, <code>[discipline]</code></h2>
+<p>Defines the discipline of the event:</p>
+<table>
+<thead>
+<tr>
+<th>Abbr</th>
+<th>Type</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>sr</td>
+<td>Single Rope</td>
+</tr>
+<tr>
+<td>dd</td>
+<td>Double Dutch</td>
+</tr>
+<tr>
+<td>wh</td>
+<td>Wheel</td>
+</tr>
+<tr>
+<td>lr</td>
+<td>Long Rope</td>
+</tr>
+<tr>
+<td>ts</td>
+<td>Team Show Contest</td>
+</tr>
+<tr>
+<td>xd</td>
+<td>Cross-Dicipline</td>
+</tr>
+</tbody>
+</table>
+<h2 id="event-abbreviation-event_abbr">Event Abbreviation, <code>[event_abbr]</code></h2>
+<p>The abbreviated name for the even:</p>
+<table>
+<thead>
+<tr>
+<th>event</th>
+<th>abbreviation</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Single Rope Speed Sprint</td>
+<td>srss</td>
+</tr>
+<tr>
+<td>Single Rope Speed Endurance</td>
+<td>srse</td>
+</tr>
+<tr>
+<td>Single Rope Triple Unders</td>
+<td>srtu</td>
+</tr>
+<tr>
+<td>Single Rope Individual Freestyle</td>
+<td>srif</td>
+</tr>
+<tr>
+<td>Single Rope Speed Relay</td>
+<td>srsr</td>
+</tr>
+<tr>
+<td>Single Rope Double Unders Relay</td>
+<td>srdr</td>
+</tr>
+<tr>
+<td>Double Dutch Speed Relay</td>
+<td>ddsr</td>
+</tr>
+<tr>
+<td>Double Dutch Speed Sprint</td>
+<td>ddss</td>
+</tr>
+<tr>
+<td>Single Rope Pair Freestyle</td>
+<td>srpf</td>
+</tr>
+<tr>
+<td>Single Rope Team Freestyle</td>
+<td>srtf</td>
+</tr>
+<tr>
+<td>Double Dutch Single Freestyle</td>
+<td>ddsf</td>
+</tr>
+<tr>
+<td>Double Dutch Pair Freestyle</td>
+<td>ddpf</td>
+</tr>
+<tr>
+<td>Double Dutch Triad Freestyle</td>
+<td>ddtf</td>
+</tr>
+<tr>
+<td>Wheel Pair Freestyle</td>
+<td>whpf</td>
+</tr>
+<tr>
+<td>Show Freestyle</td>
+<td>sctf</td>
+</tr>
+<tr>
+<td>Single Rope Speed Endurance (1x120)</td>
+<td>srss</td>
+</tr>
+<tr>
+<td>Non-Consecutive Double Unders</td>
+<td>srdu</td>
+</tr>
+<tr>
+<td>Consecutive Double Unders</td>
+<td>srdu</td>
+</tr>
+<tr>
+<td>Single Rope Individual Freestyle (0-60)</td>
+<td>srif</td>
+</tr>
+<tr>
+<td>Single Rope Double Unders Relay (4 athletes)</td>
+<td>srdr</td>
+</tr>
+<tr>
+<td>Double Dutch Single Freestyle (0-60, 4 athletes)</td>
+<td>ddsf</td>
+</tr>
+<tr>
+<td>DDC Speed</td>
+<td>ddcs</td>
+</tr>
+<tr>
+<td>DDC Freestyle</td>
+<td>ddcf</td>
+</tr>
+</tbody>
+</table>
+<h2 id="number-of-participants-num_participants">Number of Participants, <code>[num_participants]</code></h2>
+<p>This is the minimum number of participants required for the event.</p>
+<h2 id="timing">Timing</h2>
+<p>Timing is a string for the total event length or the splits for a relay event, [splits]x[length] format, for example:</p>
+<pre><code>e.ijru.sp.dd.ddsr.4.4x30
+</code></pre>
+<p>For individual speed events (e.g. 1x30), omit the '1x'), for example:</p>
+<pre><code>e.ijru.sp.sr.srss.1.30
+</code></pre>
+<h2 id="overallall-around-events">Overall/All-Around Events</h2>
+<p>Overalls are a special case of Event Definitions since they may not fall into a single discipline or event type and don't use timing. For example, the Team Single Rope Overall:</p>
+<pre><code>e.ijru.oa.sr.tsro.4.0
+</code></pre>
+<h2 id="current-lookup-codes">Current lookup codes</h2>
+<h3 id="ijru">IJRU</h3>
+<table>
+<thead>
+<tr>
+<th>Name</th>
+<th>Lookup Code</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Single Rope Speed Sprint</td>
+<td>e.ijru.sp.sr.srss.1.30</td>
+</tr>
+<tr>
+<td>Single Rope Speed Endurance</td>
+<td>e.ijru.sp.sr.srse.1.180</td>
+</tr>
+<tr>
+<td>Single Rope Triple Unders</td>
+<td>e.ijru.sp.sr.srtu.1.0</td>
+</tr>
+<tr>
+<td>Single Rope Individual Freestyle</td>
+<td>e.ijru.fs.sr.srif.1.75</td>
+</tr>
+<tr>
+<td>Single Rope Speed Relay</td>
+<td>e.ijru.sp.sr.srsr.4.4x30</td>
+</tr>
+<tr>
+<td>Single Rope Double Unders Relay</td>
+<td>e.ijru.sp.sr.srdr.2.2x30</td>
+</tr>
+<tr>
+<td>Double Dutch Speed Relay</td>
+<td>e.ijru.sp.dd.ddsr.4.4x30</td>
+</tr>
+<tr>
+<td>Double Dutch Speed Sprint</td>
+<td>e.ijru.sp.dd.ddss.3.60</td>
+</tr>
+<tr>
+<td>Single Rope Pair Freestyle</td>
+<td>e.ijru.fs.sr.srpf.2.75</td>
+</tr>
+<tr>
+<td>Single Rope Team Freestyle</td>
+<td>e.ijru.fs.sr.srtf.4.75</td>
+</tr>
+<tr>
+<td>Double Dutch Single Freestyle</td>
+<td>e.ijru.fs.dd.ddsf.3.75</td>
+</tr>
+<tr>
+<td>Double Dutch Pair Freestyle</td>
+<td>e.ijru.fs.dd.ddpf.4.75</td>
+</tr>
+<tr>
+<td>Double Dutch Triad Freestyle</td>
+<td>e.ijru.fs.dd.ddtf.5.90</td>
+</tr>
+<tr>
+<td>Wheel Pair Freestyle</td>
+<td>e.ijru.fs.wh.whpf.2.75</td>
+</tr>
+<tr>
+<td>Show Freestyle</td>
+<td>e.ijru.fs.ts.sctf.8.300</td>
+</tr>
+<tr>
+<td>Individual Single Rope Overall</td>
+<td>e.ijru.oa.sr.isro.1.0</td>
+</tr>
+<tr>
+<td>Team Single Rope Overall</td>
+<td>e.ijru.oa.sr.tsro.4.0</td>
+</tr>
+<tr>
+<td>Team Double Dutch Overall</td>
+<td>e.ijru.oa.dd.tddo.4.0</td>
+</tr>
+<tr>
+<td>Team All-Around (Cross-Discipline)</td>
+<td>e.ijru.oa.xd.tcaa.4.0</td>
+</tr>
+</tbody>
+</table>
+<h3 id="ddcw">DDCW</h3>
+<table>
+<thead>
+<tr>
+<th>Name</th>
+<th>Lookup Code</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>DDC Speed</td>
+<td>e.ddc.sp.dd.ddcs.3.30</td>
+</tr>
+<tr>
+<td>DDC Freestyle</td>
+<td>e.ddc.fs.dd.ddcf.3.30</td>
+</tr>
+</tbody>
+</table>
+<h3 id="rsc">RSC</h3>
+<table>
+<thead>
+<tr>
+<th>Name</th>
+<th>Lookup Code</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Single Rope Speed Endurance (1x120)</td>
+<td>e.rsc.sp.sr.srss.1.120</td>
+</tr>
+<tr>
+<td>Non-Consecutive Double Unders</td>
+<td>e.rsc.sp.sr.srdu.1.60</td>
+</tr>
+<tr>
+<td>Consecutive Double Unders</td>
+<td>e.rsc.sp.sr.srdu.1.120</td>
+</tr>
+<tr>
+<td>Single Rope Individual Freestyle (0-60)</td>
+<td>e.rsc.fs.sr.srif.1.60</td>
+</tr>
+<tr>
+<td>Single Rope Double Unders Relay (4 athletes)</td>
+<td>e.rsc.sp.sr.srdr.4.4x30</td>
+</tr>
+<tr>
+<td>Double Dutch Single Freestyle (0-60, 4 athletes)</td>
+<td>e.rsc.fs.dd.ddsf.4.60</td>
+</tr>
+<tr>
+<td>Double Dutch Freestyle Relay</td>
+<td>e.rsc.fs.dd.ddfr.4.75</td>
+</tr>
+<tr>
+<td>Single Rope Pair Freestyle (0-60)</td>
+<td>e.rsc.fs.sr.srpf.2.60</td>
+</tr>
+<tr>
+<td>Precision Group Routine</td>
+<td>e.rsc.fs.ts.prgr.8.240</td>
+</tr>
+<tr>
+<td>Small Group Routine</td>
+<td>e.rsc.fs.ts.smgr.1.180</td>
+</tr>
+<tr>
+<td>Individual Single Rope Overall (Canada 11U)</td>
+<td>e.rsc.oa.sr.isro.1.0</td>
+</tr>
+<tr>
+<td>Team Single Rope Overall</td>
+<td>e.rsc.oa.sr.tsro.4.0</td>
+</tr>
+<tr>
+<td>Team Double Dutch Overall</td>
+<td>e.rsc.oa.dd.tddo.4.0</td>
+</tr>
+<tr>
+<td>Team All-Around</td>
+<td>e.rsc.oa.xd.tcaa.4.0</td>
+</tr>
+</tbody>
+</table>
+<h3 id="amjrf">AMJRF</h3>
+<table>
+<thead>
+<tr>
+<th>Name</th>
+<th>Lookup Code</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Single Rope Double Unders</td>
+<td>e.amjrf.sp.sr.srdu.1.30</td>
+</tr>
+<tr>
+<td>Single Rope Iron Kid Medley (3x30)</td>
+<td>e.amjrf.sp.sr.ikm.1.3x30</td>
+</tr>
+<tr>
+<td>Wheel Speed (60)</td>
+<td>e.amjrf.sp.wh.whss.2.60</td>
+</tr>
+<tr>
+<td>Long Rope Push Ups (30)</td>
+<td>e.amjrf.sp.lr.lrpu.3.30</td>
+</tr>
+<tr>
+<td>Long Rope Speed (60)</td>
+<td>e.amjrf.sp.lr.lrss.8.60</td>
+</tr>
+<tr>
+<td>Coaches Wheel (60)</td>
+<td>e.amjrf.sp.wh.cwhs.2.60</td>
+</tr>
+<tr>
+<td>Single Rope Compulsory Routine Level 1</td>
+<td>e.amjrf.fs.sr.src1.1.0</td>
+</tr>
+<tr>
+<td>Single Rope Compulsory Routine Level 2</td>
+<td>e.amjrf.fs.sr.src2.1.0</td>
+</tr>
+<tr>
+<td>Team Show Freesyle</td>
+<td>e.amjrf.fs.ts.tshf.5.360</td>
+</tr>
+<tr>
+<td>Single Rope Speed Sprint (60)</td>
+<td>e.amjrf.sp.sr.srss.1.60</td>
+</tr>
+<tr>
+<td>Single Rope Crosses</td>
+<td>e.amjrf.sp.sr.srcr.1.30</td>
+</tr>
+<tr>
+<td>Double Dutch Speed Relay</td>
+<td>e.amjrf.sp.dd.ddsr.3.3x40</td>
+</tr>
+<tr>
+<td>Double Dutch Double Unders Relay</td>
+<td>e.amjrf.sp.dd.dddr.3.3x40</td>
+</tr>
+<tr>
+<td>Single Rope Speed/Power relay</td>
+<td>e.amjrf.sp.sr.sppr.2.2x30</td>
+</tr>
+<tr>
+<td>Single Rope Speed 2 in 1</td>
+<td>e.amjrf.sp.sr.stio.2.30</td>
+</tr>
+<tr>
+<td>Double Dutch Double Under Sprint</td>
+<td>e.amjrf.sp.dd.ddds.3.60</td>
+</tr>
+</tbody>
+</table>
+<h3 id="skipping-australia">Skipping Australia</h3>
+<table>
+<thead>
+<tr>
+<th>Name</th>
+<th>Lookup Code</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Single Rope Speed Endurance (1 minute)</td>
+<td>e.sau.sp.sr.srse.1.60</td>
+</tr>
+<tr>
+<td>Single Rope Triple Under Speed</td>
+<td>e.sau.sp.sr.srts.1.60</td>
+</tr>
+<tr>
+<td>Individual Single Rope Overall (Austalua 10U)</td>
+<td>e.sau.oa.sr.isro.1.0</td>
+</tr>
+<tr>
+<td>Single Rope Individual Freestyle (0-60)</td>
+<td>e.sau.fs.sr.srif.1.60</td>
+</tr>
+<tr>
+<td>Double Dutch Speed Relay (2x60)</td>
+<td>e.sau.sp.dd.ddsr.2.2x60</td>
+</tr>
+<tr>
+<td>Double Dutch Single Freestyle (0-60)</td>
+<td>e.sau.fs.dd.ddsf.3.60</td>
+</tr>
+<tr>
+<td>Single Rope Pair Freestyle (0-60)</td>
+<td>e.sau.fs.sr.srpf.2.60</td>
+</tr>
+<tr>
+<td>Single Rope Team Freestyle (0-60)</td>
+<td>e.sau.fs.sr.srtf.4.60</td>
+</tr>
+<tr>
+<td>Single Rope Speed Relay (2x30)</td>
+<td>e.sau.sp.sr.srsr.2.2x30</td>
+</tr>
+<tr>
+<td>Double Dutch Speed Relay (2x30)</td>
+<td>e.sau.sp.dd.ddsr.2.2x30</td>
+</tr>
+</tbody>
+</table>
+<h2 id="swedish-gymnastics-federation">Swedish Gymnastics Federation</h2>
+<table>
+<thead>
+<tr>
+<th>Name</th>
+<th>Lookup Code</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Team All-Around Rikshoppet 6:an</td>
+<td>e.svgf.oa.xd.rsaa.4.0</td>
+</tr>
+<tr>
+<td>Team All-Around Rikshoppet 8:an</td>
+<td>e.svgf.oa.xd.reaa.4.0</td>
+</tr>
+<tr>
+<td>Double Dutch Spped Relay (4x45)</td>
+<td>e.svgf.sp.dd.ddsr.4.4x45</td>
+</tr>
+</tbody>
+</table>
+<h2 id="asian-jump-rope-union">Asian Jump Rope Union</h2>
+<table>
+<thead>
+<tr>
+<th>Name</th>
+<th>Lookup Code</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Long Rope Figure Eight</td>
+<td>e.ajru.sp.lr.lrfe.10.60</td>
+</tr>
+<tr>
+<td>Long Rope Eight Jumpers</td>
+<td>e.ajru.sp.lr.lrej.10.30</td>
+</tr>
+</tbody>
+</table>
+</body></html>

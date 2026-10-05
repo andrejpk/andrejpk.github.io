@@ -1,0 +1,499 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex,nofollow,noarchive">
+<meta name="referrer" content="no-referrer">
+<title>Acoustic event trigger — POC</title>
+<style>
+body{font:16px/1.55 -apple-system,BlinkMacSystemFont,"Segoe UI",Helvetica,Arial,sans-serif;
+  max-width:1100px;margin:0 auto;padding:24px;color:#1f2328;background:#fff}
+h1,h2,h3{line-height:1.25} h2{border-bottom:1px solid #d0d7de;padding-bottom:.3em;margin-top:2em}
+code{background:#f6f8fa;padding:.1em .35em;border-radius:4px;font-size:90%}
+pre{background:#f6f8fa;padding:12px;overflow:auto;border-radius:6px} pre code{padding:0;background:none}
+table{border-collapse:collapse;margin:1em 0} th,td{border:1px solid #d0d7de;padding:6px 10px;vertical-align:top}
+.scroll{overflow-x:auto} .examples th{white-space:nowrap;text-align:left} .band{font-weight:400;color:#59636e}
+.examples td{min-width:330px} .examples audio{width:100%;height:36px}
+.examples img{width:100%;margin-top:6px;border:1px solid #d0d7de}
+.lbl{font-size:13px;color:#59636e;margin-top:4px}
+.note{background:#fff8c5;border:1px solid #d4a72c66;padding:8px 12px;border-radius:6px;font-size:14px}
+@media (prefers-color-scheme:dark){body{background:#0d1117;color:#e6edf3}
+  code,pre{background:#161b22} th,td,h2,.examples img{border-color:#30363d} a{color:#4493f8}
+  .band,.lbl{color:#9198a1} .note{background:#2e2a1a;border-color:#6e5a1a}}
+</style></head>
+<body>
+<p class="note">Unlisted research notes. Simulation-only proof of concept.</p>
+<h1 id="acoustic-event-trigger-poc">Acoustic event trigger — POC</h1>
+<p><strong>Goal.</strong> Give the Lens Android app a fallback signal (when the orchestrator websocket is
+unavailable) that says <em>"an event of type X and duration Y is about to start, and the start
+beep is Z seconds away"</em> — carried inside the IJRU timing track itself, inaudibly, and
+recoverable from a phone microphone in a loud, echoey gym.</p>
+<p><strong>Status.</strong> Simulation-only POC. Nothing here runs on a device yet. Everything under
+<code>experiments/acoustic-trigger</code> is self-contained (own venv, no Gradle involvement).</p>
+<pre><code>./fetch_tracks.sh                                # downloads the 7 IJRU v1.0.0 tracks + decodes to WAV
+uv venv .venv &amp;&amp; uv pip install -p .venv/bin/python -r requirements.txt
+.venv/bin/python run_experiments.py --quick      # ~1 min smoke grid
+.venv/bin/python test_payload.py                 # round-trip every lookup code in the spec
+.venv/bin/python run_experiments.py              # full grid (~20 min), writes out/results.csv
+.venv/bin/python false_positives.py              # receivers over unmodified tracks + noise (~20 min)
+.venv/bin/python make_examples.py                # listening examples -&gt; out/examples/
+</code></pre>
+
+<section id="listening-examples">
+<h2>Listening examples</h2>
+<p>The IJRU <code>SRSS</code> timing track with the trigger burst for
+<code>e.ijru.sp.sr.srss.1.30</code> embedded in its announcement, for each scheme at two
+levels. The <em>embedded track</em> is what the speaker would play. The <em>as heard</em> version
+simulates a phone 15 m from the speaker in a gym (RT60 ≈ 1 s, crowd noise at 5 dB SNR) and runs
+until 2 s after the start beep. The −12 dBFS examples are deliberately loud; −20 dBFS is the
+recommended level. Audio is lossless FLAC, so the 16–20 kHz band is intact. Use headphones and
+don't turn the volume up too far: the bursts sit near the top of the audible range.</p>
+<p>In the spectrograms the burst is the chirp preamble followed by stepped tones above 15 kHz,
+early in the announcement; the dashed line marks the start beep. Click a spectrogram to enlarge it.</p>
+<div class="scroll"><table class="examples">
+<thead><tr><th></th><th>-12 dBFS</th><th>-20 dBFS</th></tr></thead>
+<tbody>
+<tr><th>mfsk16<br><span class="band">band mid</span></th><td>
+  <div class="lbl">Embedded track</div>
+  <audio controls preload="none" src="audio/SRSS_mfsk16_mid_-12dB.flac"></audio>
+  <div class="lbl">As heard, gym 15 m</div>
+  <audio controls preload="none" src="audio/SRSS_mfsk16_mid_-12dB_as_heard_gym15m.flac"></audio>
+  <a href="spectrograms/SRSS_mfsk16_mid_-12dB.png"><img loading="lazy" src="spectrograms/SRSS_mfsk16_mid_-12dB.png" alt="Spectrogram of SRSS_mfsk16_mid_-12dB"></a>
+</td><td>
+  <div class="lbl">Embedded track</div>
+  <audio controls preload="none" src="audio/SRSS_mfsk16_mid_-20dB.flac"></audio>
+  <div class="lbl">As heard, gym 15 m</div>
+  <audio controls preload="none" src="audio/SRSS_mfsk16_mid_-20dB_as_heard_gym15m.flac"></audio>
+  <a href="spectrograms/SRSS_mfsk16_mid_-20dB.png"><img loading="lazy" src="spectrograms/SRSS_mfsk16_mid_-20dB.png" alt="Spectrogram of SRSS_mfsk16_mid_-20dB"></a>
+</td></tr>
+<tr><th>mfsk16f<br><span class="band">band mid</span></th><td>
+  <div class="lbl">Embedded track</div>
+  <audio controls preload="none" src="audio/SRSS_mfsk16f_mid_-12dB.flac"></audio>
+  <div class="lbl">As heard, gym 15 m</div>
+  <audio controls preload="none" src="audio/SRSS_mfsk16f_mid_-12dB_as_heard_gym15m.flac"></audio>
+  <a href="spectrograms/SRSS_mfsk16f_mid_-12dB.png"><img loading="lazy" src="spectrograms/SRSS_mfsk16f_mid_-12dB.png" alt="Spectrogram of SRSS_mfsk16f_mid_-12dB"></a>
+</td><td>
+  <div class="lbl">Embedded track</div>
+  <audio controls preload="none" src="audio/SRSS_mfsk16f_mid_-20dB.flac"></audio>
+  <div class="lbl">As heard, gym 15 m</div>
+  <audio controls preload="none" src="audio/SRSS_mfsk16f_mid_-20dB_as_heard_gym15m.flac"></audio>
+  <a href="spectrograms/SRSS_mfsk16f_mid_-20dB.png"><img loading="lazy" src="spectrograms/SRSS_mfsk16f_mid_-20dB.png" alt="Spectrogram of SRSS_mfsk16f_mid_-20dB"></a>
+</td></tr>
+<tr><th>mfsk32<br><span class="band">band mid</span></th><td>
+  <div class="lbl">Embedded track</div>
+  <audio controls preload="none" src="audio/SRSS_mfsk32_mid_-12dB.flac"></audio>
+  <div class="lbl">As heard, gym 15 m</div>
+  <audio controls preload="none" src="audio/SRSS_mfsk32_mid_-12dB_as_heard_gym15m.flac"></audio>
+  <a href="spectrograms/SRSS_mfsk32_mid_-12dB.png"><img loading="lazy" src="spectrograms/SRSS_mfsk32_mid_-12dB.png" alt="Spectrogram of SRSS_mfsk32_mid_-12dB"></a>
+</td><td>
+  <div class="lbl">Embedded track</div>
+  <audio controls preload="none" src="audio/SRSS_mfsk32_mid_-20dB.flac"></audio>
+  <div class="lbl">As heard, gym 15 m</div>
+  <audio controls preload="none" src="audio/SRSS_mfsk32_mid_-20dB_as_heard_gym15m.flac"></audio>
+  <a href="spectrograms/SRSS_mfsk32_mid_-20dB.png"><img loading="lazy" src="spectrograms/SRSS_mfsk32_mid_-20dB.png" alt="Spectrogram of SRSS_mfsk32_mid_-20dB"></a>
+</td></tr>
+<tr><th>mfsk16<br><span class="band">band low</span></th><td>
+  <div class="lbl">Embedded track</div>
+  <audio controls preload="none" src="audio/SRSS_mfsk16_low_-12dB.flac"></audio>
+  <div class="lbl">As heard, gym 15 m</div>
+  <audio controls preload="none" src="audio/SRSS_mfsk16_low_-12dB_as_heard_gym15m.flac"></audio>
+  <a href="spectrograms/SRSS_mfsk16_low_-12dB.png"><img loading="lazy" src="spectrograms/SRSS_mfsk16_low_-12dB.png" alt="Spectrogram of SRSS_mfsk16_low_-12dB"></a>
+</td><td>
+  <div class="lbl">Embedded track</div>
+  <audio controls preload="none" src="audio/SRSS_mfsk16_low_-20dB.flac"></audio>
+  <div class="lbl">As heard, gym 15 m</div>
+  <audio controls preload="none" src="audio/SRSS_mfsk16_low_-20dB_as_heard_gym15m.flac"></audio>
+  <a href="spectrograms/SRSS_mfsk16_low_-20dB.png"><img loading="lazy" src="spectrograms/SRSS_mfsk16_low_-20dB.png" alt="Spectrogram of SRSS_mfsk16_low_-20dB"></a>
+</td></tr>
+<tr><th>css30<br><span class="band">band mid</span></th><td>
+  <div class="lbl">Embedded track</div>
+  <audio controls preload="none" src="audio/SRSS_css30_mid_-12dB.flac"></audio>
+  <div class="lbl">As heard, gym 15 m</div>
+  <audio controls preload="none" src="audio/SRSS_css30_mid_-12dB_as_heard_gym15m.flac"></audio>
+  <a href="spectrograms/SRSS_css30_mid_-12dB.png"><img loading="lazy" src="spectrograms/SRSS_css30_mid_-12dB.png" alt="Spectrogram of SRSS_css30_mid_-12dB"></a>
+</td><td>
+  <div class="lbl">Embedded track</div>
+  <audio controls preload="none" src="audio/SRSS_css30_mid_-20dB.flac"></audio>
+  <div class="lbl">As heard, gym 15 m</div>
+  <audio controls preload="none" src="audio/SRSS_css30_mid_-20dB_as_heard_gym15m.flac"></audio>
+  <a href="spectrograms/SRSS_css30_mid_-20dB.png"><img loading="lazy" src="spectrograms/SRSS_css30_mid_-20dB.png" alt="Spectrogram of SRSS_css30_mid_-20dB"></a>
+</td></tr>
+<tr><th>ggwave<br><span class="band">band -</span></th><td>
+  <div class="lbl">Embedded track</div>
+  <audio controls preload="none" src="audio/SRSS_ggwave_-_-12dB.flac"></audio>
+  <div class="lbl">As heard, gym 15 m</div>
+  <audio controls preload="none" src="audio/SRSS_ggwave_-_-12dB_as_heard_gym15m.flac"></audio>
+  <a href="spectrograms/SRSS_ggwave_-_-12dB.png"><img loading="lazy" src="spectrograms/SRSS_ggwave_-_-12dB.png" alt="Spectrogram of SRSS_ggwave_-_-12dB"></a>
+</td><td>
+  <div class="lbl">Embedded track</div>
+  <audio controls preload="none" src="audio/SRSS_ggwave_-_-20dB.flac"></audio>
+  <div class="lbl">As heard, gym 15 m</div>
+  <audio controls preload="none" src="audio/SRSS_ggwave_-_-20dB_as_heard_gym15m.flac"></audio>
+  <a href="spectrograms/SRSS_ggwave_-_-20dB.png"><img loading="lazy" src="spectrograms/SRSS_ggwave_-_-20dB.png" alt="Spectrogram of SRSS_ggwave_-_-20dB"></a>
+</td></tr>
+</tbody></table></div>
+</section>
+<hr />
+<h2 id="1-what-the-timing-tracks-look-like">1. What the timing tracks look like</h2>
+<p>Downloaded from the <a href="https://ijru.sport/rules/timing-tracks-and-score-sheets">IJRU timing tracks page</a>
+(v1.0.0, Oct 2019). Spec: <a href="https://rules.ijru.sport/technical-manual/specifications/timing-tracks">Signals, sounds and call-outs</a>.</p>
+<table>
+<thead>
+<tr>
+<th>Track</th>
+<th style="text-align: right;">Length</th>
+<th style="text-align: right;">Start beep at</th>
+<th>Lookup code carried</th>
+<th>Notes</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>SRSS</td>
+<td style="text-align: right;">39.9 s</td>
+<td style="text-align: right;">9.22 s</td>
+<td><code>e.ijru.sp.sr.srss.1.30</code></td>
+<td>stop beep at 39.22</td>
+</tr>
+<tr>
+<td>SRSE</td>
+<td style="text-align: right;">191.0 s</td>
+<td style="text-align: right;">10.28 s</td>
+<td><code>e.ijru.sp.sr.srse.1.180</code></td>
+<td></td>
+</tr>
+<tr>
+<td>SRTU</td>
+<td style="text-align: right;">38.8 s</td>
+<td style="text-align: right;">7.82 s</td>
+<td><code>e.ijru.sp.sr.srtu.1.0</code></td>
+<td>open-ended, no stop beep</td>
+</tr>
+<tr>
+<td>SRSR</td>
+<td style="text-align: right;">130.7 s</td>
+<td style="text-align: right;">9.92 s</td>
+<td><code>e.ijru.sp.sr.srsr.4.4x30</code></td>
+<td>switch beeps at 493.9 Hz</td>
+</tr>
+<tr>
+<td>SRDR</td>
+<td style="text-align: right;">70.9 s</td>
+<td style="text-align: right;">10.14 s</td>
+<td><code>e.ijru.sp.sr.srdr.2.2x30</code></td>
+<td></td>
+</tr>
+<tr>
+<td>DDSR</td>
+<td style="text-align: right;">130.8 s</td>
+<td style="text-align: right;">10.12 s</td>
+<td><code>e.ijru.sp.dd.ddsr.4.4x30</code></td>
+<td></td>
+</tr>
+<tr>
+<td>DDSS</td>
+<td style="text-align: right;">70.6 s</td>
+<td style="text-align: right;">9.84 s</td>
+<td><code>e.ijru.sp.dd.ddss.3.60</code></td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<p>Facts that shape the design:</p>
+<ul>
+<li>Every track opens with <strong>8–10 s of spoken announcement</strong> ("… Judges ready? Athletes ready? Set.")
+  before the <strong>start-BEEP: 578.3 Hz square wave, 350 ms</strong>. That window is where the data goes,
+  so the device can show "armed for SRSS 30 s" <em>before</em> the beep, as requested.</li>
+<li>Files are 44.1 kHz mono MP3 at 320 kbps. Speech content is ~25 dB down by 15 kHz and the
+  encoder low-passes at 20 kHz. So there is a nearly empty 16–20 kHz band to write into,
+  and anything above 20 kHz is gone after MP3 (no true ultrasound is possible).</li>
+<li>The beep is easy to find robustly (tonal-purity onset detector, <code>embed.find_start_beep</code>):
+  it locates the beep to within one 20 ms frame on clean tracks <em>and</em> on simulated
+  25 m / 0 dB SNR gym captures. The data burst therefore only needs to say "beep is coming in
+  ~N s"; the beep itself gives the precise t=0.</li>
+</ul>
+<h2 id="2-prior-art-what-exists-what-its-good-for">2. Prior art (what exists, what it's good for)</h2>
+<table>
+<thead>
+<tr>
+<th>Option</th>
+<th>What it is</th>
+<th>Verdict for us</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><a href="https://github.com/ggerganov/ggwave">ggwave</a> (MIT)</td>
+<td>Multi-frequency FSK "data over sound", audible and <strong>ultrasound (15–19.5 kHz)</strong> profiles, Reed-Solomon ECC, 8–16 B/s. Has Android/Kotlin, iOS, Python, JS bindings. Used by the <em>Waver</em> app.</td>
+<td>Strong off-the-shelf baseline. Decodes in our gym sims. Cons: fixed protocol, 15 kHz base is clearly audible to kids, python API gives no sample-accurate timing, the [U] protocols are ~1.8 s for 5 bytes.</td>
+</tr>
+<tr>
+<td><a href="https://github.com/quiet/quiet">Quiet Modem</a> (BSD)</td>
+<td>liquid-SDR based OFDM/FSK modem with ultrasonic (&gt;16 kHz) profiles; C/JS/Android/iOS.</td>
+<td>Similar to ggwave but heavier deps and less maintained; OFDM is worse in reverberation than FSK/chirp. Not pursued.</td>
+</tr>
+<tr>
+<td>Chirp.io (commercial, now Sonos)</td>
+<td>M-ary FSK near-ultrasonic with guard intervals and amplitude envelopes to survive reverb.</td>
+<td>Their published design notes (FSK beats PSK/OFDM in multipath; guard intervals matter) directly informed our MFSK scheme.</td>
+</tr>
+<tr>
+<td>Chirp spread spectrum (LoRa-style, <a href="https://www.researchgate.net/publication/308840117_Chirp_signal-based_aerial_acoustic_communication_for_smart_devices">acoustic literature</a>)</td>
+<td>Each bit is an up- or down-sweep; matched-filter "pulse compression" separates direct path from echoes by arrival time. Used for indoor acoustic positioning on phones.</td>
+<td>Best fit for a <em>reverberant gym</em>. Implemented here as <code>css</code>. Trivial to port to Kotlin (two FFT correlations).</td>
+</tr>
+<tr>
+<td>Audio watermarks: <a href="https://github.com/swesterfeld/audiowmark">audiowmark</a> (GPL, patchwork), <a href="https://github.com/wavmark/wavmark">WavMark</a>, <a href="https://github.com/facebookresearch/audioseal">AudioSeal</a>, <a href="https://github.com/sony/silentcipher">SilentCipher</a> (DL-based)</td>
+<td>Hide bits <em>inside</em> the audible speech, robust to MP3 etc.</td>
+<td>Designed for file-level provenance, not for speaker→air→mic at 15 m with crowd noise; the DL ones need a PyTorch model on the phone and give no timing. Academic "re-recording robust" schemes report ~90 % accuracy at ≤1.5 m. Not pursued for the POC; possible fallback if near-ultrasonic proves unusable on some PA.</td>
+</tr>
+<tr>
+<td>Room simulation: <a href="https://github.com/LCAV/pyroomacoustics">pyroomacoustics</a></td>
+<td>Image-source + ray tracing RIRs.</td>
+<td>Used for the channel model (§4).</td>
+</tr>
+</tbody>
+</table>
+<p>Physics notes that matter (from the research):
+* Phone mics/ADCs at 44.1/48 kHz capture up to ~20–22 kHz; many roll off above ~19–20 kHz
+  (<a href="https://www.researchgate.net/publication/362094978_Frequency_Response_of_Smartphones_at_the_Upper_Limit_of_the_Audible_Range">frequency response of smartphones at the upper audible limit</a>).
+* Air absorption is ~0.5 dB/m at 19 kHz (ISO 9613-1) vs ~0.005 dB/m at 1 kHz. This <em>shortens
+  reverberation</em> dramatically in the band we use (sim: RT60 ≈ 1 s at 18–20 kHz vs several s
+  at 1 kHz), which is a big help — but it also means a 25 m path loses ~12 dB more than at 1 kHz.
+* Bluetooth SBC/AAC and low-bitrate MP3 re-encodes low-pass at 16–20 kHz depending on
+  bitrate. Gym PA horns are typically rated to 20 kHz but with roll-off. This is the main
+  real-world risk to a near-ultrasonic scheme and is modelled in the channel grid.
+* Adults generally can't hear &gt;17 kHz; teenage athletes may hear up to ~19–20 kHz at high
+  level. We therefore test three bands and report the lowest level that still decodes.</p>
+<h2 id="3-alternatives-considered">3. Alternatives considered</h2>
+<p><strong>A. ggwave ultrasound profile as-is.</strong> Cheapest to ship (Kotlin binding exists). Works in
+simulation. Payload must be encoded as a short string; no fine timing; 15–19.5 kHz.</p>
+<p><strong>B. Custom near-ultrasonic M-FSK (<code>mfsk4</code>, <code>mfsk16</code>, <code>mfsk16f</code>, <code>mfsk32</code>).</strong> 4/16/32 tones
+in a 2 kHz band, 60–80 ms symbols + 15–20 ms guard, even/odd symbols on interleaved tone sets so echoes of the
+previous symbol don't collide. Non-coherent Goertzel detection. Chirp preamble for sync.</p>
+<p><strong>C. Custom chirp spread spectrum (<code>css30</code>, <code>css15</code>).</strong> Bit = up/down sweep over a 1 kHz
+half-band (even/odd bits use lower/upper halves), 30 ms or 15 ms per bit + guard,
+V-shaped 120 ms preamble chirp. Matched-filter detection. (<code>css15</code> was dropped from the
+final grid after the first round showed it clearly too short.)</p>
+<p><strong>D. In-band watermark under the speech (not built).</strong> Fallback only if near-ultrasonic
+fails on real PA gear. Audible-band DSSS loses phase coherence in reverb; would need a
+longer, lower-rate design and extensive listening tests.</p>
+<p>All of B/C share the same payload/FEC layer and can coexist with A (the phone can run
+several detectors on the same 48 kHz mic stream).</p>
+<h3 id="payload-acoustic_triggerpayloadpy">Payload (<code>acoustic_trigger/payload.py</code>)</h3>
+<p>The payload carries a full <strong>event definition lookup code</strong> from
+<a href="https://github.com/lyra-sports/standards/blob/main/specs/event-definition-lookup-codes.md">lyra-sports/standards</a>
+(copy: <a href="lookup-codes.html">event definition lookup codes</a>), e.g. <code>e.ijru.sp.sr.srsr.4.4x30</code>, encoded field
+by field so any present or future code is representable without a shared table.
+64 bits → Reed-Solomon RS(12,8) → 96 bits on air.</p>
+<table>
+<thead>
+<tr>
+<th style="text-align: right;">Bits</th>
+<th>Field</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: right;">2</td>
+<td>version</td>
+</tr>
+<tr>
+<td style="text-align: right;">4</td>
+<td>org (ijru, rsc, ddc, sau, amjrf, svgf, ajru)</td>
+</tr>
+<tr>
+<td style="text-align: right;">2</td>
+<td>type (sp, fs, oa)</td>
+</tr>
+<tr>
+<td style="text-align: right;">3</td>
+<td>discipline (sr, dd, wh, lr, ts, xd)</td>
+</tr>
+<tr>
+<td style="text-align: right;">20</td>
+<td>event abbreviation, 4 chars × 5 bits (a–z, 0–4, pad)</td>
+</tr>
+<tr>
+<td style="text-align: right;">4</td>
+<td>participants</td>
+</tr>
+<tr>
+<td style="text-align: right;">3</td>
+<td>splits (1 for "30", 4 for "4x30")</td>
+</tr>
+<tr>
+<td style="text-align: right;">9</td>
+<td>split length in seconds (0 = open-ended)</td>
+</tr>
+<tr>
+<td style="text-align: right;">8</td>
+<td>offset from end of burst to start-BEEP, 100 ms units</td>
+</tr>
+<tr>
+<td style="text-align: right;">1</td>
+<td>spare</td>
+</tr>
+<tr>
+<td style="text-align: right;">8</td>
+<td>CRC-8</td>
+</tr>
+</tbody>
+</table>
+<p><code>test_payload.py</code> round-trips all 66 codes currently in the spec (including 2 corrupted
+bytes and a soft erasure). RS corrects any 2 bad bytes of 12; the CRC catches RS
+mis-corrections. The receiver derives <code>duration = splits × length</code> for the model-reset
+timer, and <code>splits</code> tells it how many switch beeps to expect in relays.</p>
+<p>Burst lengths at 96 bits: <code>mfsk16</code> 2.6 s, <code>mfsk16f</code> 2.0 s, <code>mfsk32</code> 2.2 s, <code>css30</code> 3.9 s,
+ggwave 2.2 s. The shortest announcement (SRTU, beep at 7.8 s) still leaves room for one burst
+plus a repeat.</p>
+<h2 id="4-channel-model-acoustic_triggerchannelpy">4. Channel model (<code>acoustic_trigger/channel.py</code>)</h2>
+<p>Playback → air → Android mic, each stage optional:</p>
+<ol>
+<li>Organiser <strong>re-encodes</strong> the file as 128 kbps MP3 (ffmpeg/lame round trip).</li>
+<li><strong>Speaker</strong>: 2nd-order low-pass at 16 or 18 kHz (cheap horn / Bluetooth codec), optional
+   soft clipping (<code>tanh</code>, drive 3 = badly overdriven PA).</li>
+<li><strong>Room</strong>: pyroomacoustics shoebox — <code>gym</code> 32×20×9 m, <code>hall</code> 60×40×14 m, <code>gym_dead</code>
+   (treated); image-source early reflections + ray-traced tail; plus ISO 9613-1 air
+   absorption above 8 kHz applied as a time-varying filter (pyroomacoustics' own table stops
+   at the 8 kHz octave). Source on one wall, mic 5–30 m away, off-axis, 1.5 m high.
+   Resulting 18–20 kHz band: RT60 ≈ 0.9–1.0 s, direct-to-reverberant ratio −3 to −9 dB.</li>
+<li><strong>Noise</strong>: speech-shaped crowd babble + white mic floor, at broadband SNR +10 … −5 dB
+   relative to the track (in-band SNR is much better because crowd noise is &lt; 8 kHz — that
+   is the whole point of the band choice).</li>
+<li><strong>Mic/ADC</strong>: 2nd-order low-pass at 19–20 kHz, ±100 ppm clock drift, resample to 48 kHz,
+   normalise to −12 dBFS, 16-bit quantise.</li>
+</ol>
+<p>Channel grid used by <code>run_experiments.py</code>:
+<code>anechoic_clean, gym_5m_snr10, gym_15m_snr5, gym_25m_snr0, gym_15m_snr5_mp3-128,
+gym_15m_snr5_spk-lpf18k, gym_15m_snr5_spk-lpf16k, gym_15m_snr5_mic-lpf19k_drift100,
+gym_15m_snr5_clip, hall_30m_snr0, gym_dead_15m_snr-5</code>.</p>
+<p>Embedding levels: burst peak at −12 / −20 / −28 dBFS (speech peaks at 0 dBFS). Bands:
+<code>hi</code> 18.5–20 kHz, <code>mid</code> 17.5–19.5 kHz, <code>low</code> 16–18 kHz.</p>
+<h2 id="5-results">5. Results</h2>
+<p>Full grid: 7 tracks × 16 scheme/band combos × 3 levels × 11 channels = <strong>3696 runs</strong>
+(<code>out/results.csv</code>, ~15 min). Decode = the full lookup code recovered exactly.</p>
+<p><strong>Wrong decodes (passed RS + CRC but wrong payload): 1 / 3696</strong> — <code>css30</code>, <code>hi</code> band,
+−28 dBFS, 25 m / 0 dB SNR, i.e. a burst that was already unrecoverable; the soft-erasure
+retry found a codeword that passed CRC-8 by chance (~1/256 per attempt). Mitigation for
+production: embed the burst twice and require agreement, or a CRC-16 if the spare bit budget
+is rearranged. <strong>False positives on unmodified tracks and 2 min of noise: 0 / 144 receiver
+runs</strong> (<code>false_positives.py</code>).</p>
+<h3 id="decode-rate-by-scheme-band-and-embedding-level-all-channels-all-tracks">Decode rate by scheme, band and embedding level (all channels, all tracks)</h3>
+<pre><code>level_db      -28.0  -20.0  -12.0
+kind    band                     
+css30   hi     0.70   0.88   1.00
+        low    0.82   0.92   0.91
+        mid    0.81   0.97   1.00
+ggwave  -      0.32   0.75   0.88
+mfsk16  hi     0.87   1.00   1.00
+        low    0.95   1.00   1.00
+        mid    0.92   1.00   1.00
+mfsk16f hi     0.83   1.00   1.00
+        low    0.97   1.00   1.00
+        mid    0.88   1.00   1.00
+mfsk32  hi     0.83   1.00   1.00
+        low    0.96   1.00   1.00
+        mid    0.96   1.00   1.00
+mfsk4   hi     0.73   1.00   1.00
+        low    0.92   1.00   1.00
+        mid    0.77   0.96   0.95
+</code></pre>
+<h3 id="decode-rate-by-channel-and-scheme-all-bands-levels-tracks">Decode rate by channel and scheme (all bands, levels, tracks)</h3>
+<pre><code>kind                              css30  ggwave  mfsk16  mfsk16f  mfsk32  mfsk4
+channel                                                                        
+anechoic_clean                     1.00    0.86    1.00     1.00    1.00   1.00
+gym_15m_snr5                       1.00    0.76    1.00     1.00    1.00   1.00
+gym_15m_snr5_clip                  1.00    0.90    1.00     1.00    1.00   1.00
+gym_15m_snr5_mic-lpf19k_drift100   1.00    0.76    1.00     1.00    1.00   1.00
+gym_15m_snr5_mp3-128               1.00    0.67    1.00     1.00    1.00   1.00
+gym_15m_snr5_spk-lpf16k            0.87    0.62    0.92     0.90    0.90   0.73
+gym_15m_snr5_spk-lpf18k            0.97    0.76    1.00     0.98    1.00   0.83
+gym_25m_snr0                       0.37    0.33    0.95     0.95    0.95   0.92
+gym_5m_snr10                       1.00    1.00    1.00     1.00    1.00   1.00
+gym_dead_15m_snr-5                 1.00    0.48    1.00     1.00    1.00   0.98
+hall_30m_snr0                      0.59    0.05    0.81     0.78    0.84   0.71
+</code></pre>
+<h3 id="the-three-hardest-channels-at-20-dbfs-by-band">The three hardest channels at −20 dBFS, by band</h3>
+<pre><code>band                                -    hi   low   mid
+channel                 kind                           
+gym_15m_snr5_spk-lpf16k css30     NaN  1.00  1.00  1.00
+                        ggwave   0.86   NaN   NaN   NaN
+                        mfsk16    NaN  1.00  1.00  1.00
+                        mfsk16f   NaN  1.00  1.00  1.00
+                        mfsk32    NaN  1.00  1.00  1.00
+                        mfsk4     NaN  1.00  1.00  0.86
+gym_25m_snr0            css30     NaN  0.43  0.14  0.71
+                        ggwave   0.29   NaN   NaN   NaN
+                        mfsk16    NaN  1.00  1.00  1.00
+                        mfsk16f   NaN  1.00  1.00  1.00
+                        mfsk32    NaN  1.00  1.00  1.00
+                        mfsk4     NaN  1.00  1.00  1.00
+hall_30m_snr0           css30     NaN  0.29  1.00  1.00
+                        ggwave   0.00   NaN   NaN   NaN
+                        mfsk16    NaN  1.00  1.00  1.00
+                        mfsk16f   NaN  1.00  1.00  1.00
+                        mfsk32    NaN  1.00  1.00  1.00
+                        mfsk4     NaN  1.00  1.00  1.00
+</code></pre>
+<h3 id="beep-timing">Beep timing</h3>
+<p>The receiver predicts the start beep from <code>burst position + payload offset</code>, then confirms it
+with the 578 Hz detector. Over 3274 decoded runs the prediction was within
+<strong>±120 ms (σ ≈ 26 ms)</strong> of the detected beep for all schemes; the per-scheme mean offsets of
+−22…+24 ms are constant and would be calibrated out. 6 runs had the <em>beep detector</em> fire
+~1.7 s early on a spoken word; gating the detector to the predicted window (which the payload
+gives us) removes that class of error. The beep was found in 100 % of runs on every channel.</p>
+<h3 id="reading-the-numbers">Reading the numbers</h3>
+<ul>
+<li><strong>MFSK with guard intervals wins in reverberation.</strong> <code>mfsk16</code>, <code>mfsk16f</code> and <code>mfsk32</code>
+  all decode 100 % at −20 and −12 dBFS in every band on every channel except the two
+  hardest (16 kHz speaker low-pass: 90–92 %, 60 m hall at 30 m: 78–84 % — both recover to
+  100 % in the <code>mid</code>/<code>low</code> bands at −20 dBFS, the failures are the <code>hi</code> band at −28 dBFS).
+  Still ≥ 83 % at −28 dBFS.</li>
+<li><strong>Shorter MFSK variants cost nothing measurable.</strong> <code>mfsk16f</code> (2.0 s burst) and <code>mfsk32</code>
+  (2.2 s) match <code>mfsk16</code> (2.6 s) within noise, so there is room to repeat the burst inside
+  even the shortest announcement.</li>
+<li><strong>CSS is second.</strong> <code>css30</code> is 100 % in the 15 m cases but drops at 25 m / 0 dB. Matched
+  filtering does compress echoes, but 30 ms sweeps carry ~3× less energy per bit than an
+  80 ms tone, and in a gym with RT60 ≈ 1 s in-band that energy margin matters more than the
+  echo separation. It is also the longest burst (4 s at 96 bits).</li>
+<li><strong>ggwave [U] Normal works but is the weakest</strong> at low level and in the hall; its
+  15–19.5 kHz base band is also the most audible.</li>
+<li><strong>Band:</strong> <code>mid</code> (17.5–19.5 kHz) and <code>low</code> (16–18 kHz) are the most robust; <code>hi</code>
+  (18.5–20 kHz) is the least audible but suffers first from the 16/18 kHz speaker
+  low-pass and mic roll-off. <code>mid</code> is the sensible default; the 16 kHz-lowpass case is the
+  one to test on real PA gear.</li>
+<li><strong>Level:</strong> −20 dBFS peak (≈ −25 dBFS RMS, roughly 20 dB below the announcer's voice) is
+  enough everywhere for MFSK. Listen to the <a href="#listening-examples">examples</a> to judge
+  audibility yourself: each example comes as the embedded track and as the simulated
+  15 m gym capture (the −12 dB examples are deliberately loud).</li>
+</ul>
+<h2 id="6-recommendation-and-next-steps">6. Recommendation and next steps</h2>
+<p><strong>Recommendation: build on scheme B (<code>mfsk16f</code> or <code>mfsk32</code>, 17.5–19.5 kHz, −20 dBFS,
+burst repeated twice), keep ggwave as a cross-check, don't pursue in-band watermarking
+unless real-world PA tests fail.</strong></p>
+<p>Why: it had the best margin on every simulated impairment, the receiver is ~60 lines of
+DSP (band-pass, chirp-preamble correlation, 32–64 Goertzel bins per symbol, RS(12,8) + CRC) that
+ports straight to Kotlin with no native deps, and it gives sample-accurate burst timing so the
+device can arm itself and then lock to the real beep.</p>
+<p>Suggested next steps, in order:</p>
+<ol>
+<li><strong>Real-air test, no app changes.</strong> Play the embedded-track examples through a phone/laptop →
+   Bluetooth → gym PA, record on 2–3 Android devices at 5/15/25 m with a plain recorder app
+   (48 kHz, <code>UNPROCESSED</code> source if available), then run <code>receive()</code> offline on the captures.
+   This validates the two things simulation can't: the PA's real HF roll-off and the phone's
+   mic/AGC/noise-suppression behaviour. If <code>mid</code> fails on some PA, drop to <code>low</code>.</li>
+<li><strong>Audibility check</strong> with a few young athletes in a quiet room at competition PA level.</li>
+<li><strong>Track production</strong>: a script that takes the official IJRU track, finds the beep,
+   embeds the burst twice in the announcement (repetition is free and closes the CRC-8 hole),
+   and exports WAV + 320 kbps MP3. Keep the official track otherwise untouched.</li>
+<li><strong>Android receiver</strong>: <code>AudioRecord</code> at 48 kHz mono in the same process as the camera
+   <code>MediaRecorder</code> (same-UID concurrent capture is allowed on Android 10+; needs checking
+   against the HLS recording path in <code>RecorderWrapper.kt</code>). Detector runs continuously,
+   emits <code>Armed(lookupCode, duration, splits, expectedBeepAt)</code> then <code>Started(t0)</code> when the 578 Hz beep is
+   confirmed inside the predicted window, and <code>Stopped</code> at <code>t0 + duration</code> (or on the stop
+   beep). Same event shape the orchestrator websocket will emit, so the AI model reset
+   logic doesn't care which source fired.</li>
+<li>Later hardening: repeat-burst combining, per-device calibration of the constant timing
+   offset, and a version bump path in the payload for future fields (heat/station id).</li>
+</ol>
+</body></html>
