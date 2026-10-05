@@ -312,7 +312,9 @@ several detectors on the same 48 kHz mic stream).</p>
 <p>The payload carries a full <strong>event definition lookup code</strong> from
 <a href="https://github.com/lyra-sports/standards/blob/main/specs/event-definition-lookup-codes.md">lyra-sports/standards</a>
 (copy: <a href="lookup-codes.html">event definition lookup codes</a>), e.g. <code>e.ijru.sp.sr.srsr.4.4x30</code>, encoded field
-by field so any present or future code is representable without a shared table.
+by field so every code in that spec is representable without a per-code table. Org, type and
+discipline use fixed enum mappings and every field has a fixed width (e.g. at most 4
+abbreviation characters), so new enum values or wider fields need a payload version bump.
 64 bits → Reed-Solomon RS(12,8) → 96 bits on air.</p>
 <table>
 <thead>
