@@ -174,11 +174,12 @@ and losing those symbols is enough to lose the code.</p>
 """
 
 zip_path = out / "downloads" / "acoustic-trigger-examples.zip"
+members = [(f, f"lossless/{f.name}") for f in sorted((out / "audio").glob("*.flac"))]
+members += [(f, f"mp3/{f.name}") for f in sorted((out / "mp3").iterdir())]
 with zipfile.ZipFile(zip_path, "w", zipfile.ZIP_STORED) as z:
-    for f in sorted((out / "audio").glob("*.flac")):
-        z.write(f, f"lossless/{f.name}")
-    for f in sorted((out / "mp3").iterdir()):
-        z.write(f, f"mp3/{f.name}")
+    for f, arc in members:
+        # fixed timestamp so an unchanged rebuild does not rewrite the 27 MB zip in git
+        z.writestr(zipfile.ZipInfo(arc, date_time=(2026, 1, 1, 0, 0, 0)), f.read_bytes())
 zip_mb = zip_path.stat().st_size / 1e6
 
 md = (src / "README.md").read_text()
