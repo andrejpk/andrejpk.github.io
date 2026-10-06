@@ -1,7 +1,7 @@
 // Diagnostic recorder for the trigger receiver: session facts, receiver events, 1 s stats,
 // player events, page errors, and the last few seconds of raw microphone audio, exported as
 // one JSON file (format "trigger-receiver-diag/1") that can be shared for analysis.
-export const BUILD = "56266db763"; // replaced with a content hash when the page is built
+export const BUILD = "dcb1415322"; // replaced with a content hash when the page is built
 
 const MAX_ENTRIES = 20000;
 const entries = [];

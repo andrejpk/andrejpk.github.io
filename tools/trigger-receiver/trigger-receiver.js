@@ -3,7 +3,9 @@
 //
 // Burst: 120 ms V-shaped chirp preamble (down f1->f0 then up f0->f1), 40 ms gap, then
 // 24 symbols of 60 ms tone + 15 ms guard. Each symbol carries 4 bits; even and odd symbols use
-// interleaved sets of 16 tones. 96 bits = RS(12,8) codeword over a 64-bit payload with CRC-8.
+// interleaved sets of 16 tones. 104 bits = RS(13,9) codeword over a 72-bit payload (version 2:
+// 56 bits of fields + CRC-16). Tracks carry 3-4 copies; any one that passes the CRC is accepted,
+// and copies that agree are averaged into one beep prediction.
 
 export const BANDS = {
   mid: { f0: 17500, f1: 19500 },
@@ -11,7 +13,8 @@ export const BANDS = {
 };
 const M = 16, BITS_PER_SYM = 4, SYM_DUR = 0.060, GUARD = 0.015;
 const PRE_DUR = 0.120, PRE_GAP = 0.040, SKIP_S = 0.008;
-const N_BITS = 96, N_SYMS = N_BITS / BITS_PER_SYM;
+const N_BITS = 104, N_SYMS = N_BITS / BITS_PER_SYM;
+export const AGREE_S = 0.06; // copies of one broadcast predict the same beep (reflections: up to ~35 ms apart)
 export const PRE_THRESH = 6.0;
 
 // ---------------------------------------------------------------- GF(256), RS(12,8)
@@ -29,7 +32,7 @@ const gfMul = (a, b) => (a && b ? GF_EXP[GF_LOG[a] + GF_LOG[b]] : 0);
 const gfDiv = (a, b) => (a ? GF_EXP[(GF_LOG[a] + 255 - GF_LOG[b]) % 255] : 0);
 const gfPow2 = (e) => GF_EXP[((e % 255) + 255) % 255];
 
-const N_CW = 12, N_ECC = 4;
+const N_CW = 13, N_DATA = 9, N_ECC = 4;
 
 function syndromes(cw) {
   // S_j = c(2^j); cw[0] is the highest-degree coefficient
@@ -83,12 +86,12 @@ function* combos(pool, k, start = 0, acc = []) {
   for (let i = start; i < pool.length; i++) { acc.push(pool[i]); yield* combos(pool, k, i + 1, acc); acc.pop(); }
 }
 
-// Bounded-distance RS decode with erasures (2*errors + erasures <= 4). Returns the 8 data bytes or null.
+// Bounded-distance RS decode with erasures (2*errors + erasures <= 4). Returns the data bytes or null.
 export function rsDecode(cwIn, erasures = []) {
   if (erasures.length > N_ECC) return null;
   const cw = Uint8Array.from(cwIn);
   const s = syndromes(cw);
-  if (!erasures.length && s.every((v) => !v)) return cw.slice(0, 8);
+  if (!erasures.length && s.every((v) => !v)) return cw.slice(0, N_DATA);
   const others = [...Array(N_CW).keys()].filter((i) => !erasures.includes(i));
   for (let e = 0; 2 * e + erasures.length <= N_ECC; e++) {
     for (const guess of combos(others, e)) {
@@ -99,7 +102,7 @@ export function rsDecode(cwIn, erasures = []) {
       if (guess.some((_, gi) => !vals[erasures.length + gi])) continue;
       const out = Uint8Array.from(cw);
       pos.forEach((p, i) => { out[p] ^= vals[i]; });
-      if (syndromes(out).every((v) => !v)) return out.slice(0, 8);
+      if (syndromes(out).every((v) => !v)) return out.slice(0, N_DATA);
     }
   }
   return null;
@@ -120,13 +123,23 @@ export function crc8(bytes) {
   return c;
 }
 
+export function crc16(bytes) {
+  // CRC-16/CCITT-FALSE
+  let c = 0xffff;
+  for (const b of bytes) {
+    c ^= b << 8;
+    for (let i = 0; i < 8; i++) c = c & 0x8000 ? ((c << 1) ^ 0x1021) & 0xffff : (c << 1) & 0xffff;
+  }
+  return c;
+}
+
 export function parsePayload(b) {
-  if (b.length !== 8 || crc8(b.slice(0, 7)) !== b[7]) return null;
+  if (b.length !== N_DATA || crc16(b.slice(0, 7)) !== ((b[7] << 8) | b[8])) return null;
   let v = 0n;
   for (let i = 0; i < 7; i++) v = (v << 8n) | BigInt(b[i]);
   let pos = 56n;
   const take = (w) => { pos -= BigInt(w); return Number((v >> pos) & ((1n << BigInt(w)) - 1n)); };
-  if (take(2) !== 1) return null;
+  if (take(2) !== 2) return null; // payload version 2
   const org = ORGS[take(4)], type = TYPES[take(2)], discipline = DISCIPLINES[take(3)];
   let abbr = "";
   for (let i = 0; i < 4; i++) abbr += ABBR[take(5)];
@@ -441,29 +454,33 @@ export class TriggerReceiver {
       const hit = this.beep.find(this.buf, this.abs2rel(lo), this.abs2rel(hi) + Math.round(0.2 * this.fs));
       if (hit !== null) {
         const beepAbs = hit + (this.total - this.len); // fractional sample index
-        events.push({ type: "beep", decodes: a.decodes, beepAbs, predictedBeepAbs: a.predictedBeepAbs,
+        events.push({ type: "beep", decodes: a.decodes, payload: a.payload, beepAbs, predictedBeepAbs: a.predictedBeepAbs,
           errorMs: ((beepAbs - a.predictedBeepAbs) / this.fs) * 1000 });
       } else {
-        events.push({ type: "beep-missed", decodes: a.decodes, predictedBeepAbs: a.predictedBeepAbs });
+        events.push({ type: "beep-missed", decodes: a.decodes, payload: a.payload, predictedBeepAbs: a.predictedBeepAbs });
       }
       return false;
     });
     return events;
   }
 
-  // Group decodes that predict the same beep (both copies, both bands) into one armed window.
+  // Group decodes that agree (same code, same predicted beep; any copy, either band) into one
+  // armed window, ev.group; its prediction is the mean of the copies.
   arm(ev) {
-    const tol = Math.round(0.3 * this.fs);
+    const tol = Math.round(AGREE_S * this.fs);
     const same = this.armed.find((a) => a.payload.code === ev.payload.code && Math.abs(a.predictedBeepAbs - ev.predictedBeepAbs) < tol);
     if (same) {
       // every agreeing copy refines the prediction: use their mean
       same.decodes.push(ev);
       same.predictedBeepAbs = Math.round(same.decodes.reduce((t, d) => t + d.predictedBeepAbs, 0) / same.decodes.length);
       ev.agrees = true;
+      ev.group = same;
       return;
     }
-    const conflict = this.armed.find((a) => Math.abs(a.predictedBeepAbs - ev.predictedBeepAbs) < tol);
-    if (conflict) ev.conflict = true;
-    this.armed.push({ payload: ev.payload, predictedBeepAbs: ev.predictedBeepAbs, decodes: [ev] });
+    // a different code (or a beep far from any armed one) within a few seconds is a conflict
+    const near = Math.round(3 * this.fs);
+    if (this.armed.some((a) => Math.abs(a.predictedBeepAbs - ev.predictedBeepAbs) < near)) ev.conflict = true;
+    ev.group = { payload: ev.payload, predictedBeepAbs: ev.predictedBeepAbs, decodes: [ev] };
+    this.armed.push(ev.group);
   }
 }

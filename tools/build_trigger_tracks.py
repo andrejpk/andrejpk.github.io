@@ -207,7 +207,7 @@ page = f"""<!doctype html>
 </tbody></table></div>
 <details class="about"><summary>About these files</summary>
 <p>Each track carries its event definition lookup code and the time to the start beep as a short
-near-ultrasonic data burst, played twice early in the announcement. A phone listening in the gym
+near-ultrasonic data burst, repeated 3 or 4 times (as many as fit) during the announcement. A phone listening in the gym
 can decode it and know which event is about to start before the beep.</p>
 <ul>
 <li><strong>Mid band</strong> (17.5–19.5 kHz) is the default build. <strong>Low band</strong>

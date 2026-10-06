@@ -179,7 +179,8 @@ function record(ev) {
   if (ev.type === "preamble") diag("preamble", { ...base, at: sec(ev.abs) });
   else if (ev.type === "decode-failed") diag("decode-failed", { ...base, at: sec(ev.abs), symbols: syms(ev.symbols) });
   else if (ev.type === "decode") diag("decode", { ...base, at: sec(ev.abs), burstEnd: sec(ev.burstEndAbs), code: ev.payload.code,
-    offsetS: ev.payload.beepOffsetS, predicted: sec(ev.predictedBeepAbs), erasures: ev.erasures, agrees: !!ev.agrees,
+    offsetS: ev.payload.beepOffsetS, predicted: sec(ev.predictedBeepAbs), groupPredicted: sec(ev.group.predictedBeepAbs),
+    copies: ev.group.decodes.length, erasures: ev.erasures, agrees: !!ev.agrees,
     conflict: !!ev.conflict, symbols: syms(ev.symbols) });
   else if (ev.type === "beep") diag("beep", { beepAt: sec(ev.beepAbs), predicted: sec(ev.predictedBeepAbs),
     errorMs: +ev.errorMs.toFixed(1), copies: ev.decodes.length, codes: ev.decodes.map((d) => `${d.band}:${d.payload.code}`) });
@@ -207,17 +208,15 @@ function handle(ev) {
     const p = ev.payload;
     marker(ev.band, "✓", 1);
     showPayload(ev);
-    // average the predictions of every agreeing copy; reschedule the click
-    const a = S.rx.armed.find((x) => x.decodes.includes(ev));
-    const preds = a ? a.decodes.map((d) => d.predictedBeepAbs) : [ev.predictedBeepAbs];
-    const predAbs = a ? a.predictedBeepAbs : ev.predictedBeepAbs; // mean of agreeing copies
-    S.armed = { code: p.code, predAbs, copies: preds.length };
+    // every CRC-valid copy is accepted; agreeing copies are averaged into one prediction
+    const n = ev.group.decodes.length, predAbs = ev.group.predictedBeepAbs;
+    S.armed = { code: p.code, predAbs, copies: n };
     const when = scheduleClick(predAbs);
     setStatus("armed", `Armed: ${NAMES.event[p.abbr] || p.abbr.toUpperCase()}, beep predicted`);
-    const note = ev.conflict ? " ⚠ disagrees with another decode" : ev.agrees ? ", agrees" : "";
+    const note = ev.conflict ? " ⚠ different event from the one already armed" : ev.agrees ? `, copy ${n} agrees` : "";
     logRow("ok", `${ev.band} <code>${p.code}</code> burst end ${rxSeconds(ev.burstEndAbs)} + ${p.beepOffsetS.toFixed(1)} s → beep ${rxSeconds(ev.predictedBeepAbs)} s`
       + `${ev.erasures ? `, ${ev.erasures} byte erasure${ev.erasures > 1 ? "s" : ""}` : ""}${note}`
-      + `${!$("rx-click-on").checked ? "" : when === null ? ", too late for the tick" : `, tick set${preds.length > 1 ? ` (mean of ${preds.length})` : ""}`}`);
+      + `${!$("rx-click-on").checked ? "" : when === null ? ", too late for the tick" : `, tick set${n > 1 ? ` (mean of ${n})` : ""}`}`);
     return;
   }
   if (ev.type === "beep") {
@@ -248,6 +247,7 @@ function showPayload(ev) {
     ["timing", `${timing} · ${p.participants} participant${p.participants === 1 ? "" : "s"}`],
     ["beep", `${p.beepOffsetS.toFixed(1)} s after burst`],
     ["band", `<b style="color:${BAND_COLOR[ev.band]}">${ev.band}</b> · ${ev.score.toFixed(0)}× noise${ev.erasures ? ` · ${ev.erasures} erasure${ev.erasures > 1 ? "s" : ""}` : ""}`],
+    ["copies", `${ev.group.decodes.length} decoded · CRC-16 ok`],
   ];
   $("rx-fields").innerHTML = rows.map(([k, v]) => `<div title="${k}: ${v.replace(/<[^>]+>/g, "")}"><span>${k}</span>${v}</div>`).join("");
   $("rx-symbols").innerHTML = ev.symbols.map((s) => {
