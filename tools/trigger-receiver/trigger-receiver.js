@@ -311,6 +311,30 @@ class BeepDetector {
     return tone / band > 0.4;
   }
 
+  // Sub-frame onset: 5 ms sliding DFT magnitude of the 578.3 Hz fundamental around the frame
+  // detection; the onset is where the envelope first reaches half its early plateau (the first
+  // 60 ms of tone, so later reverberant build-up does not drag it late).
+  refine(buf, coarse) {
+    const fs = this.fs, w = 2 * Math.PI * 578.3 / fs, L = Math.round(0.005 * fs);
+    const a = Math.max(0, coarse - Math.round(0.08 * fs)), b = Math.min(buf.length, coarse + Math.round(0.2 * fs));
+    const n = b - a, cr = new Float64Array(n + 1), ci = new Float64Array(n + 1);
+    for (let i = 0; i < n; i++) { cr[i + 1] = cr[i] + buf[a + i] * Math.cos(w * (a + i)); ci[i + 1] = ci[i] - buf[a + i] * Math.sin(w * (a + i)); }
+    const env = new Float64Array(n - L + 1);
+    for (let i = 0; i < env.length; i++) env[i] = Math.hypot(cr[i + L] - cr[i], ci[i + L] - ci[i]);
+    // rough edge: first crossing of a quarter of the overall maximum, then the early plateau after it
+    let mx = 0;
+    for (const v of env) mx = Math.max(mx, v);
+    let edge = env.findIndex((v) => v > 0.25 * mx);
+    if (edge < 0) return coarse;
+    let plateau = 0;
+    for (let i = edge; i < Math.min(env.length, edge + Math.round(0.06 * fs)); i++) plateau = Math.max(plateau, env[i]);
+    let i = Math.max(0, edge - L);
+    while (i < env.length && env[i] < 0.5 * plateau) i++;
+    // Measured against sample-exact onsets of the IJRU beep, the half-height crossing of this
+    // window lands on the onset itself (adding L/2 for an ideal step read 2.5 ms late)
+    return a + i;
+  }
+
   // Search frames centred at multiples of n within [fromIdx, toIdx] (buf-relative). Returns centre index or null.
   find(buf, fromIdx, toIdx) {
     const first = Math.ceil(Math.max(fromIdx, this.n) / this.n);
@@ -318,7 +342,7 @@ class BeepDetector {
     const on = [];
     for (let i = first; i <= last; i++) on.push(this.tonal(buf, i * this.n));
     for (let i = 0; i + 10 <= on.length; i++) {
-      if (on[i] && on.slice(i, i + 10).filter(Boolean).length >= 8) return (first + i) * this.n;
+      if (on[i] && on.slice(i, i + 10).filter(Boolean).length >= 8) return this.refine(buf, (first + i) * this.n);
     }
     return null;
   }
@@ -416,7 +440,7 @@ export class TriggerReceiver {
       if (this.total < hi + Math.round(0.25 * this.fs)) return true;
       const hit = this.beep.find(this.buf, this.abs2rel(lo), this.abs2rel(hi) + Math.round(0.2 * this.fs));
       if (hit !== null) {
-        const beepAbs = hit + (this.total - this.len);
+        const beepAbs = hit + (this.total - this.len); // fractional sample index
         events.push({ type: "beep", decodes: a.decodes, beepAbs, predictedBeepAbs: a.predictedBeepAbs,
           errorMs: ((beepAbs - a.predictedBeepAbs) / this.fs) * 1000 });
       } else {

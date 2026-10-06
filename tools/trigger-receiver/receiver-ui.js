@@ -1,6 +1,7 @@
 // Microphone front end for trigger-receiver.js: capture, spectrum analyzer, waterfall,
 // decoded payload, beep prediction, and a click scheduled at the predicted beep.
 import { TriggerReceiver, BANDS, PRE_THRESH } from "./trigger-receiver.js";
+import { AudioRing, BUILD, diag, exportReport, onDiagChange, setClock } from "./diag.js";
 
 const $ = (id) => document.getElementById(id);
 const BAND_COLOR = { mid: "#22d3ee", low: "#e879f9" };
@@ -13,6 +14,8 @@ const NAMES = {
 };
 
 let S = null; // running state
+let ring = null; // last 30 s of microphone audio for diagnostics; kept after stopping
+const AUDIO_SECONDS = 30;
 
 // ------------------------------------------------------------------ audio
 async function start() {
@@ -38,10 +41,19 @@ async function start() {
   S = {
     ctx, stream, track, analyser, node, queue: [], frameOffset: 0,
     rx: new TriggerReceiver(ctx.sampleRate),
+    stats: { sumSq: 0, n: 0, peak: 0, procMs: 0, procMax: 0, procN: 0, dropouts: 0, lastAt: performance.now() },
     freq: new Float32Array(analyser.frequencyBinCount), peak: new Float32Array(analyser.frequencyBinCount).fill(-200),
     armed: null, clickSrc: null, lastPreamble: {},
   };
   node.port.onmessage = (e) => S.queue.push(e.data);
+  ring = new AudioRing(ctx.sampleRate, AUDIO_SECONDS);
+  setClock(() => (S ? { ctx: +S.ctx.currentTime.toFixed(4), rx: +(S.rx.total / S.ctx.sampleRate).toFixed(4) } : null));
+  diag("session-start", {
+    sampleRate: ctx.sampleRate, baseLatency: ctx.baseLatency, outputLatency: ctx.outputLatency,
+    mic: track.label, settings: track.getSettings(), constraints: track.getConstraints(),
+    capabilities: track.getCapabilities?.(), bands: BANDS, preambleThreshold: PRE_THRESH,
+    correlationWindow: S.rx.fftN, tickOn: $("rx-click-on").checked, trimMs: Number($("rx-trim").value),
+  });
   S.timer = setInterval(pump, 100);
   S.raf = requestAnimationFrame(draw);
   showInfo();
@@ -56,6 +68,7 @@ async function start() {
 
 function stop() {
   if (!S) return;
+  diag("session-stop", { dropouts: S.stats.dropouts });
   clearInterval(S.timer);
   cancelAnimationFrame(S.raf);
   S.stream.getTracks().forEach((t) => t.stop());
@@ -67,12 +80,47 @@ function stop() {
 
 function pump() {
   if (!S) return;
+  const st = S.stats;
   while (S.queue.length) {
     const { frame, samples } = S.queue.shift();
+    if (S.nextFrame !== undefined && frame !== S.nextFrame) {
+      st.dropouts++;
+      diag("dropout", { expectedFrame: S.nextFrame, gotFrame: frame, gapMs: +(((frame - S.nextFrame) / S.ctx.sampleRate) * 1000).toFixed(1) });
+    }
+    S.nextFrame = frame + samples.length;
     S.frameOffset = frame - S.rx.total; // receiver sample index -> AudioContext frame
     S.rx.push(samples);
+    ring.push(samples);
+    for (let i = 0; i < samples.length; i++) { const v = samples[i]; st.sumSq += v * v; st.peak = Math.max(st.peak, Math.abs(v)); }
+    st.n += samples.length;
   }
-  for (const ev of S.rx.process()) handle(ev);
+  const t0 = performance.now();
+  const events = S.rx.process();
+  const ms = performance.now() - t0;
+  st.procMs += ms; st.procMax = Math.max(st.procMax, ms); st.procN++;
+  for (const ev of events) handle(ev);
+  if (performance.now() - st.lastAt >= 1000) logStats();
+}
+
+// once a second: input level, band energy, preamble scores, CPU, backlog
+function logStats() {
+  const st = S.stats, f = new Float32Array(S.analyser.frequencyBinCount);
+  S.analyser.getFloatFrequencyData(f);
+  const binHz = S.ctx.sampleRate / 2 / f.length;
+  const bandDb = (lo, hi) => {
+    let sum = 0, n = 0;
+    for (let i = Math.ceil(lo / binHz); i <= Math.floor(hi / binHz) && i < f.length; i++) { sum += 10 ** (f[i] / 10); n++; }
+    return n ? +(10 * Math.log10(sum / n + 1e-30)).toFixed(1) : null;
+  };
+  diag("stats", {
+    rmsDb: +(10 * Math.log10(st.sumSq / Math.max(1, st.n) + 1e-20)).toFixed(1),
+    peakDb: +(20 * Math.log10(st.peak + 1e-10)).toFixed(1),
+    bandDb: { speech: bandDb(300, 3000), floor: bandDb(12000, 15000), low: bandDb(16000, 18000), mid: bandDb(17500, 19500), top: bandDb(20000, 22000) },
+    preamble: Object.fromEntries(Object.entries(S.rx.levels).map(([k, v]) => [k, +v.toFixed(1)])),
+    procMsAvg: +(st.procMs / Math.max(1, st.procN)).toFixed(1), procMsMax: +st.procMax.toFixed(1),
+    queue: S.queue.length, dropouts: st.dropouts, armed: S.rx.armed.length,
+  });
+  Object.assign(st, { sumSq: 0, n: 0, peak: 0, procMs: 0, procMax: 0, procN: 0, lastAt: performance.now() });
 }
 
 const absToCtxTime = (abs) => (abs + S.frameOffset) / S.ctx.sampleRate;
@@ -112,14 +160,34 @@ function scheduleClick(predAbs) {
   const { input, output } = latencies();
   const trim = Number($("rx-trim").value) / 1000;
   const when = absToCtxTime(predAbs) - input - output + trim;
-  if (when < S.ctx.currentTime + 0.05) return null;
+  const info = { predictedRx: +(predAbs / S.ctx.sampleRate).toFixed(4), predictedCtx: +absToCtxTime(predAbs).toFixed(4),
+    scheduledCtx: +when.toFixed(4), inputLatency: input, outputLatency: output, trimMs: trim * 1000,
+    leadS: +(when - S.ctx.currentTime).toFixed(3) };
+  if (when < S.ctx.currentTime + 0.05) { diag("tick-skipped", { ...info, reason: "too late" }); return null; }
+  diag("tick", info);
   if (S.clickSrc) { try { S.clickSrc.stop(); } catch { /* already played */ } }
   S.clickSrc = playClick(when);
   return when;
 }
 
 // ------------------------------------------------------------------ events
+const sec = (abs) => +(abs / S.ctx.sampleRate).toFixed(4);
+const syms = (list) => list.map((x) => [x.value, +x.conf.toFixed(3)]);
+
+function record(ev) {
+  const base = { band: ev.band, score: ev.score && +ev.score.toFixed(1) };
+  if (ev.type === "preamble") diag("preamble", { ...base, at: sec(ev.abs) });
+  else if (ev.type === "decode-failed") diag("decode-failed", { ...base, at: sec(ev.abs), symbols: syms(ev.symbols) });
+  else if (ev.type === "decode") diag("decode", { ...base, at: sec(ev.abs), burstEnd: sec(ev.burstEndAbs), code: ev.payload.code,
+    offsetS: ev.payload.beepOffsetS, predicted: sec(ev.predictedBeepAbs), erasures: ev.erasures, agrees: !!ev.agrees,
+    conflict: !!ev.conflict, symbols: syms(ev.symbols) });
+  else if (ev.type === "beep") diag("beep", { beepAt: sec(ev.beepAbs), predicted: sec(ev.predictedBeepAbs),
+    errorMs: +ev.errorMs.toFixed(1), copies: ev.decodes.length, codes: ev.decodes.map((d) => `${d.band}:${d.payload.code}`) });
+  else if (ev.type === "beep-missed") diag("beep-missed", { predicted: sec(ev.predictedBeepAbs), copies: ev.decodes.length });
+}
+
 function handle(ev) {
+  record(ev);
   if (ev.type === "preamble") {
     S.lastPreamble[ev.band] = performance.now();
     return;
@@ -344,13 +412,31 @@ function drawCountdown() {
 // ------------------------------------------------------------------ controls
 $("rx-start").addEventListener("click", async () => {
   if (S) { stop(); return; }
-  try { await start(); } catch (e) { setStatus("error", `Could not start the microphone: ${e.message}`); }
+  try { await start(); } catch (e) {
+    diag("error", { where: "start", name: e.name, message: e.message });
+    setStatus("error", `Could not start the microphone: ${e.message}`);
+  }
 });
-$("rx-test-click").addEventListener("click", () => playClick());
+$("rx-test-click").addEventListener("click", () => { diag("user", { action: "test-tick" }); playClick(); });
+$("rx-click-on").addEventListener("change", (e) => diag("user", { action: "tick-on", value: e.target.checked }));
+$("rx-diag").addEventListener("click", () => {
+  diag("user", { action: "export" });
+  const bytes = exportReport(ring, $("rx-diag-audio").checked);
+  $("rx-diag-n").textContent = `saved ${(bytes / 1e6).toFixed(1)} MB`;
+});
+onDiagChange((n) => { $("rx-diag-n").textContent = `${n} entries`; });
+// the page's own players: on a single device, play time is independent ground truth for the beep
+for (const a of document.querySelectorAll("audio")) {
+  for (const type of ["play", "playing", "pause", "seeked", "ended", "waiting"]) {
+    a.addEventListener(type, () => diag("player", { event: type, file: a.currentSrc.split("/").pop(), currentTime: +a.currentTime.toFixed(3) }));
+  }
+}
+diag("page", { build: BUILD });
 const trim = $("rx-trim");
 trim.value = localStorage.getItem("rx-trim") || "0";
 const showTrim = () => { $("rx-trim-val").textContent = `${trim.value > 0 ? "+" : ""}${trim.value} ms`; };
 trim.addEventListener("input", () => { localStorage.setItem("rx-trim", trim.value); showTrim(); });
+trim.addEventListener("change", () => diag("user", { action: "trim", ms: Number(trim.value) }));
 showTrim();
 // per-band threshold tick on the meters
 for (const band of Object.keys(BANDS)) {

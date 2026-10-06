@@ -8,6 +8,7 @@ Run make_tracks.py in the experiment first, then:
   python3 tools/build_trigger_tracks.py <experiment dir> <output dir>
 """
 import csv
+import hashlib
 import html
 import shutil
 import subprocess
@@ -36,7 +37,7 @@ for b in builds:
     title = subprocess.run(["ffprobe", "-v", "error", "-show_entries", "format_tags=title", "-of", "csv=p=0",
                             release / f"{b['track']}_trigger_{b['band']}.mp3"],
                            capture_output=True, text=True, check=True).stdout.strip()
-    tracks.setdefault(b["track"], {"title": title, "code": b["code"], "beep": b["beep_s"]})[b["band"]] = b
+    tracks.setdefault(b["track"], {"title": title, "code": b["code"], "beep": b["beep_onset_s"]})[b["band"]] = b
 
 
 def mb(p):
@@ -67,8 +68,10 @@ for band in ("mid", "low"):
             zf.writestr(zipfile.ZipInfo(name, date_time=(2026, 1, 1, 0, 0, 0)), (out / "mp3" / name).read_bytes())
     zips[band] = z
 
-for js in ("trigger-receiver.js", "capture-worklet.js", "receiver-ui.js"):
-    shutil.copyfile(RECEIVER / js, out / js)
+JS = ("trigger-receiver.js", "capture-worklet.js", "receiver-ui.js", "diag.js")
+build_id = hashlib.sha1(b"".join((RECEIVER / js).read_bytes() for js in JS)).hexdigest()[:10]
+for js in JS:  # stamp the receiver version into the diagnostics
+    (out / js).write_text((RECEIVER / js).read_text().replace("__BUILD__", build_id))
 
 WF_AXIS = "".join(f'<span style="top:{(21.5 - f) / 9.5 * 100:.1f}%">{f}k</span>' for f in (20, 18, 16, 14))
 RECEIVER_HTML = f"""
@@ -85,7 +88,8 @@ RECEIVER_HTML = f"""
       trigger live. Play a track below on this device or on another one nearby (speaker, not headphones). When a
       trigger decodes, the page plays a short high <em>tick</em> at the predicted start beep so you can hear how well
       it lines up with the track's own beep; move <em>trim</em> to correct for your device's audio delay. Audio never
-      leaves your device.</div></details>
+      leaves your device unless you save diagnostics: that file includes the last 30 s of microphone audio (untick
+      to leave it out).</div></details>
     </div>
   </div>
   <div class="rx-viz">
@@ -107,6 +111,9 @@ RECEIVER_HTML = f"""
     <div class="rx-card rx-logcard">
       <div class="rx-log" id="rx-log"></div>
       <div class="rx-info" id="rx-info"></div>
+      <div class="rx-diagbar"><button id="rx-diag" title="Saves a JSON file with this session's receiver events, stats and settings to share for debugging">Save diagnostics</button>
+        <label title="Embeds the most recent 30 s of microphone audio as a WAV inside the file"><input type="checkbox" id="rx-diag-audio" checked> + last 30 s audio</label>
+        <span id="rx-diag-n"></span></div>
     </div>
   </div>
 </section>
@@ -172,6 +179,7 @@ table.tt{border-collapse:collapse;width:100%} .tt th,.tt td{border:1px solid #d0
 .rx-log-row.dim{color:#64748b} .rx-log-row.warn{color:#fbbf24} .rx-log-row.ok{color:#a7f3d0}
 .rx-log-row code{background:none;padding:0;color:#67e8f9}
 .rx-log:empty::before{content:"events appear here";color:#475569}
+.rx-diagbar{display:flex;align-items:center;gap:8px;margin-top:5px;font-size:11px;color:#7d8aa0} .rx-diagbar button{padding:2px 8px;font-size:12px}
 .rx-info{margin-top:4px;font:10px ui-monospace,monospace;color:#64748b;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 @media (prefers-color-scheme:dark){body{background:#0d1117;color:#e6edf3} code{background:#161b22}
   .tt th,.tt td{border-color:#30363d} a{color:#4493f8} .sub,.note,.tracks-head span,.about{color:#9198a1}}
