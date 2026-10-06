@@ -1,0 +1,125 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex,nofollow,noarchive">
+<meta name="referrer" content="no-referrer">
+<title>IJRU timing tracks with event trigger (test builds)</title>
+<style>
+body{font:16px/1.55 -apple-system,BlinkMacSystemFont,"Segoe UI",Helvetica,Arial,sans-serif;
+  max-width:1100px;margin:0 auto;padding:24px;color:#1f2328;background:#fff}
+code{background:#f6f8fa;padding:.1em .35em;border-radius:4px;font-size:85%}
+table{border-collapse:collapse;margin:1em 0;width:100%} th,td{border:1px solid #d0d7de;padding:8px 10px;vertical-align:top}
+thead th{text-align:left} tbody th{text-align:left;font-weight:600;width:30%}
+.sub{font-weight:400;color:#59636e;font-size:14px} audio{width:100%;height:36px} .dl{font-size:13px;margin-top:4px}
+.scroll{overflow-x:auto} .note{background:#fff8c5;border:1px solid #d4a72c66;padding:8px 12px;border-radius:6px;font-size:14px}
+@media (prefers-color-scheme:dark){body{background:#0d1117;color:#e6edf3} code{background:#161b22}
+  th,td{border-color:#30363d} a{color:#4493f8} .sub{color:#9198a1} .note{background:#2e2a1a;border-color:#6e5a1a}}
+</style></head>
+<body>
+<h1>IJRU timing tracks with event trigger</h1>
+<p class="note">Test builds, not official IJRU releases. Based on the IJRU timing tracks v1.0.0
+from <a href="https://ijru.sport/rules/timing-tracks-and-score-sheets">ijru.sport</a>; the
+announcement, beeps and timing are unchanged.</p>
+<p>Each track carries its event definition lookup code and the time to the start beep as a short
+near-ultrasonic data burst, played twice early in the announcement. A phone listening in the gym
+can decode it and know which event is about to start before the beep.</p>
+<ul>
+<li><strong>Mid band</strong> (17.5–19.5 kHz) is the default build. <strong>Low band</strong>
+(16–18 kHz) is a fallback for sound systems that cut the top of the range; it is easier to hear.</li>
+<li>Play the files as they are. The MP3s are mono 320 kbps; re-encoding them, especially to
+stereo below 320 kbps or with the LAME V2 preset, can strip the trigger. Use the WAV if your
+software needs a different format.</li>
+<li>Every file here was decoded successfully from the published MP3 in simulated clean and
+gym conditions before publishing.</li>
+</ul>
+<p>Download all MP3s: <a href="ijru-trigger-tracks-mid-mp3.zip" download>mid band</a> (26.9 MB) ·
+<a href="ijru-trigger-tracks-low-mp3.zip" download>low band</a> (26.9 MB)</p>
+<div class="scroll"><table>
+<thead><tr><th>Track</th><th>Mid band (default)</th><th>Low band (fallback)</th></tr></thead>
+<tbody>
+<tr><th>Single Rope Speed Sprint<br><span class="sub">SRSS · beep at 9.2 s</span><br>
+<code>e.ijru.sp.sr.srss.1.30</code></th>
+<td>
+  <audio controls preload="none" src="mp3/SRSS_trigger_mid.mp3"></audio>
+  <div class="dl"><a href="mp3/SRSS_trigger_mid.mp3" download>MP3</a> (1.6 MB) ·
+  <a href="wav/SRSS_trigger_mid.wav" download>WAV</a> (3.5 MB)</div>
+</td>
+<td>
+  <audio controls preload="none" src="mp3/SRSS_trigger_low.mp3"></audio>
+  <div class="dl"><a href="mp3/SRSS_trigger_low.mp3" download>MP3</a> (1.6 MB) ·
+  <a href="wav/SRSS_trigger_low.wav" download>WAV</a> (3.5 MB)</div>
+</td></tr>
+<tr><th>Single Rope Speed Endurance<br><span class="sub">SRSE · beep at 10.3 s</span><br>
+<code>e.ijru.sp.sr.srse.1.180</code></th>
+<td>
+  <audio controls preload="none" src="mp3/SRSE_trigger_mid.mp3"></audio>
+  <div class="dl"><a href="mp3/SRSE_trigger_mid.mp3" download>MP3</a> (7.6 MB) ·
+  <a href="wav/SRSE_trigger_mid.wav" download>WAV</a> (16.8 MB)</div>
+</td>
+<td>
+  <audio controls preload="none" src="mp3/SRSE_trigger_low.mp3"></audio>
+  <div class="dl"><a href="mp3/SRSE_trigger_low.mp3" download>MP3</a> (7.6 MB) ·
+  <a href="wav/SRSE_trigger_low.wav" download>WAV</a> (16.8 MB)</div>
+</td></tr>
+<tr><th>Single Rope Triple Unders<br><span class="sub">SRTU · beep at 7.8 s</span><br>
+<code>e.ijru.sp.sr.srtu.1.0</code></th>
+<td>
+  <audio controls preload="none" src="mp3/SRTU_trigger_mid.mp3"></audio>
+  <div class="dl"><a href="mp3/SRTU_trigger_mid.mp3" download>MP3</a> (1.6 MB) ·
+  <a href="wav/SRTU_trigger_mid.wav" download>WAV</a> (3.4 MB)</div>
+</td>
+<td>
+  <audio controls preload="none" src="mp3/SRTU_trigger_low.mp3"></audio>
+  <div class="dl"><a href="mp3/SRTU_trigger_low.mp3" download>MP3</a> (1.6 MB) ·
+  <a href="wav/SRTU_trigger_low.wav" download>WAV</a> (3.4 MB)</div>
+</td></tr>
+<tr><th>Single Rope Speed Relay<br><span class="sub">SRSR · beep at 9.9 s</span><br>
+<code>e.ijru.sp.sr.srsr.4.4x30</code></th>
+<td>
+  <audio controls preload="none" src="mp3/SRSR_trigger_mid.mp3"></audio>
+  <div class="dl"><a href="mp3/SRSR_trigger_mid.mp3" download>MP3</a> (5.2 MB) ·
+  <a href="wav/SRSR_trigger_mid.wav" download>WAV</a> (11.5 MB)</div>
+</td>
+<td>
+  <audio controls preload="none" src="mp3/SRSR_trigger_low.mp3"></audio>
+  <div class="dl"><a href="mp3/SRSR_trigger_low.mp3" download>MP3</a> (5.2 MB) ·
+  <a href="wav/SRSR_trigger_low.wav" download>WAV</a> (11.5 MB)</div>
+</td></tr>
+<tr><th>Single Rope Double Unders Relay<br><span class="sub">SRDR · beep at 10.1 s</span><br>
+<code>e.ijru.sp.sr.srdr.2.2x30</code></th>
+<td>
+  <audio controls preload="none" src="mp3/SRDR_trigger_mid.mp3"></audio>
+  <div class="dl"><a href="mp3/SRDR_trigger_mid.mp3" download>MP3</a> (2.8 MB) ·
+  <a href="wav/SRDR_trigger_mid.wav" download>WAV</a> (6.2 MB)</div>
+</td>
+<td>
+  <audio controls preload="none" src="mp3/SRDR_trigger_low.mp3"></audio>
+  <div class="dl"><a href="mp3/SRDR_trigger_low.mp3" download>MP3</a> (2.8 MB) ·
+  <a href="wav/SRDR_trigger_low.wav" download>WAV</a> (6.2 MB)</div>
+</td></tr>
+<tr><th>Double Dutch Speed Relay<br><span class="sub">DDSR · beep at 10.1 s</span><br>
+<code>e.ijru.sp.dd.ddsr.4.4x30</code></th>
+<td>
+  <audio controls preload="none" src="mp3/DDSR_trigger_mid.mp3"></audio>
+  <div class="dl"><a href="mp3/DDSR_trigger_mid.mp3" download>MP3</a> (5.2 MB) ·
+  <a href="wav/DDSR_trigger_mid.wav" download>WAV</a> (11.5 MB)</div>
+</td>
+<td>
+  <audio controls preload="none" src="mp3/DDSR_trigger_low.mp3"></audio>
+  <div class="dl"><a href="mp3/DDSR_trigger_low.mp3" download>MP3</a> (5.2 MB) ·
+  <a href="wav/DDSR_trigger_low.wav" download>WAV</a> (11.5 MB)</div>
+</td></tr>
+<tr><th>Double Dutch Speed Sprint<br><span class="sub">DDSS · beep at 9.8 s</span><br>
+<code>e.ijru.sp.dd.ddss.3.60</code></th>
+<td>
+  <audio controls preload="none" src="mp3/DDSS_trigger_mid.mp3"></audio>
+  <div class="dl"><a href="mp3/DDSS_trigger_mid.mp3" download>MP3</a> (2.8 MB) ·
+  <a href="wav/DDSS_trigger_mid.wav" download>WAV</a> (6.2 MB)</div>
+</td>
+<td>
+  <audio controls preload="none" src="mp3/DDSS_trigger_low.mp3"></audio>
+  <div class="dl"><a href="mp3/DDSS_trigger_low.mp3" download>MP3</a> (2.8 MB) ·
+  <a href="wav/DDSS_trigger_low.wav" download>WAV</a> (6.2 MB)</div>
+</td></tr>
+</tbody></table></div>
+</body></html>

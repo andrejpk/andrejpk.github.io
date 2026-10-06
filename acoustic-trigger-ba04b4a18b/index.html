@@ -24,7 +24,7 @@ table{border-collapse:collapse;margin:1em 0} th,td{border:1px solid #d0d7de;padd
   .ok{color:#3fb950} .bad{color:#f85149}}
 </style></head>
 <body>
-<p class="note">Unlisted research notes. Simulation-only proof of concept. <a href="downloads/acoustic-trigger-examples.zip" download>Download all example audio</a> (27 MB zip: lossless FLAC and MP3 examples) · <a href="#listening-examples">lossless examples</a> · <a href="#mp3-listening-examples">MP3 examples</a></p>
+<p class="note">Unlisted research notes. Simulation-only proof of concept. <a href="downloads/acoustic-trigger-examples.zip" download>Download all example audio</a> (27 MB zip: lossless FLAC and MP3 examples) · <a href="#listening-examples">lossless examples</a> · <a href="#mp3-listening-examples">MP3 examples</a> · <a href="../ijru-trigger-tracks-7aa0c6b7e8/">all 7 timing tracks with the trigger (test builds)</a></p>
 <h1 id="acoustic-event-trigger-poc">Acoustic event trigger — POC</h1>
 <p><strong>Goal.</strong> Give the Lens Android app a fallback signal (when the orchestrator websocket is
 unavailable) that says <em>"an event of type X and duration Y is about to start, and the start
@@ -41,6 +41,7 @@ uv venv .venv &amp;&amp; uv pip install -p .venv/bin/python -r requirements.txt
 .venv/bin/python make_examples.py                # listening examples -&gt; out/examples/
 .venv/bin/python measure_codec_cutoff.py         # effective low-pass of each MP3 encoder -&gt; out/codec_cutoff.csv
 .venv/bin/python run_mp3_experiments.py          # MP3 distribution grid (~11 min), writes out/mp3_results.csv
+.venv/bin/python make_tracks.py                  # test builds of all 7 tracks (mid + low band), WAV + mono 320k MP3, verified
 </code></pre>
 
 <section id="listening-examples">
@@ -526,7 +527,12 @@ device can arm itself and then lock to the real beep.</p>
 <li><strong>Track production</strong>: a script that takes the official IJRU track, finds the beep,
    embeds the burst twice in the announcement (repetition is free and closes the CRC-8 hole),
    and exports WAV plus a mono MP3 (any CBR bitrate) or a 320 kbps / V0 stereo MP3 (§7).
-   Keep the official track otherwise untouched.</li>
+   Keep the official track otherwise untouched.
+   <code>make_tracks.py</code> is a first version for the real-air test: <code>mfsk16f</code> at −20 dBFS, burst
+   repeated twice, in the <code>mid</code> band and separately in the <code>low</code> fallback band, exported as
+   WAV and mono 320 kbps MP3 with the original tags. It decodes each exported MP3 through the
+   clean and 15/25 m gym channels and fails if any build does not decode; all 14 pass
+   (<code>out/tracks_release/manifest.csv</code>).</li>
 <li><strong>Android receiver</strong>: <code>AudioRecord</code> at 48 kHz mono in the same process as the camera
    <code>MediaRecorder</code> (same-UID concurrent capture is allowed on Android 10+; needs checking
    against the HLS recording path in <code>RecorderWrapper.kt</code>). Detector runs continuously,

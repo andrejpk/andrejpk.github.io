@@ -31,6 +31,7 @@ examples = src / "out" / "examples"
 SCHEMES = [("mfsk16", "mid"), ("mfsk16f", "mid"), ("mfsk32", "mid"),
            ("mfsk16", "low"), ("css30", "mid"), ("ggwave", "-")]
 LEVELS = (-12, -20)
+TRACKS_PAGE = "../ijru-trigger-tracks-7aa0c6b7e8/"  # one-way link; that page never links back
 HEARD_TAIL_S = 2.0  # make_examples.py simulates the track up to 2 s after the start beep
 
 
@@ -232,7 +233,8 @@ def page(title, body):
     f'<p class="note">Unlisted research notes. Simulation-only proof of concept. '
     f'<a href="downloads/acoustic-trigger-examples.zip" download>Download all example audio</a> '
     f'({zip_mb:.0f} MB zip: lossless FLAC and MP3 examples) · '
-    f'<a href="#listening-examples">lossless examples</a> · <a href="#mp3-listening-examples">MP3 examples</a></p>\n'
+    f'<a href="#listening-examples">lossless examples</a> · <a href="#mp3-listening-examples">MP3 examples</a> · '
+    f'<a href="{TRACKS_PAGE}">all 7 timing tracks with the trigger (test builds)</a></p>\n'
     + report_html.replace("<hr />", examples_html + "<hr />", 1) + mp3_html))
 (out / "lookup-codes.html").write_text(page(
     "Event definition lookup codes",
