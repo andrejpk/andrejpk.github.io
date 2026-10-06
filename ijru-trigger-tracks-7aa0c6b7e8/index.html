@@ -5,60 +5,191 @@
 <meta name="referrer" content="no-referrer">
 <title>IJRU timing tracks with event trigger (test builds)</title>
 <style>
-body{font:16px/1.55 -apple-system,BlinkMacSystemFont,"Segoe UI",Helvetica,Arial,sans-serif;
-  max-width:1100px;margin:0 auto;padding:24px;color:#1f2328;background:#fff}
-code{background:#f6f8fa;padding:.1em .35em;border-radius:4px;font-size:85%}
-table{border-collapse:collapse;margin:1em 0;width:100%} th,td{border:1px solid #d0d7de;padding:8px 10px;vertical-align:top}
-thead th{text-align:left} tbody th{text-align:left;font-weight:600;width:30%}
-.sub{font-weight:400;color:#59636e;font-size:14px} audio{width:100%;height:36px} .dl{font-size:13px;margin-top:4px}
-.scroll{overflow-x:auto} .note{background:#fff8c5;border:1px solid #d4a72c66;padding:8px 12px;border-radius:6px;font-size:14px}
-.rx{background:#070b12;color:#d6deeb;border:1px solid #1f2a3a;border-radius:14px;padding:16px 18px 12px;margin:1.5em 0;
-  box-shadow:0 0 0 1px #0b1220,0 10px 40px #0007;font-size:14px}
-.rx h2{margin:0;font-size:18px;letter-spacing:.02em;color:#e6edf3} .rx h3{margin:0 0 8px;font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:#7d8aa0}
-.rx-head{display:flex;flex-wrap:wrap;gap:10px;align-items:center;justify-content:space-between}
-.rx-controls{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
-.rx button{font:inherit;border:1px solid #2b3a52;background:#0f1726;color:#d6deeb;border-radius:8px;padding:6px 12px;cursor:pointer}
+body{font:15px/1.45 -apple-system,BlinkMacSystemFont,"Segoe UI",Helvetica,Arial,sans-serif;
+  max-width:1240px;margin:0 auto;padding:12px 16px;color:#1f2328;background:#fff}
+code{background:#f6f8fa;padding:.05em .3em;border-radius:4px;font-size:82%}
+.top{display:flex;flex-wrap:wrap;align-items:baseline;gap:4px 14px;margin-bottom:8px}
+h1{font-size:20px;margin:0} .note{font-size:13px;color:#59636e}
+.tracks-head{display:flex;flex-wrap:wrap;align-items:baseline;gap:4px 14px;margin:10px 0 4px} .tracks-head h2{font-size:16px;margin:0}
+.tracks-head span{font-size:13px;color:#59636e}
+.scroll{overflow-x:auto}
+table.tt{border-collapse:collapse;width:100%} .tt th,.tt td{border:1px solid #d0d7de;padding:3px 8px;vertical-align:middle}
+.tt thead th{text-align:left;font-size:13px;font-weight:600;padding:4px 8px} .tt tbody th{text-align:left;font-weight:400;font-size:13px;width:31%}
+.sub{color:#59636e;font-size:12px}
+.pl{display:flex;align-items:center;gap:8px} .pl audio{flex:1;min-width:0;height:30px} .dl{font-size:12px;white-space:nowrap}
+.about{margin-top:12px;font-size:13px;color:#59636e} .about summary{cursor:pointer} .about ul{margin:4px 0}
+.rx{background:#070b12;color:#d6deeb;border:1px solid #1f2a3a;border-radius:12px;padding:10px 12px;
+  box-shadow:0 0 0 1px #0b1220,0 8px 30px #0006;font-size:13px}
+.rx h2{margin:0;font-size:15px;color:#e6edf3;white-space:nowrap}
+.rx-head{display:flex;flex-wrap:wrap;gap:8px 12px;align-items:center}
+.rx-controls{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-left:auto}
+.rx button{font:inherit;border:1px solid #2b3a52;background:#0f1726;color:#d6deeb;border-radius:7px;padding:4px 10px;cursor:pointer}
 .rx button.primary{background:linear-gradient(135deg,#0891b2,#7c3aed);border-color:transparent;color:#fff;font-weight:600}
-.rx label{color:#9fb0c8;font-size:13px;display:flex;align-items:center;gap:6px} .rx input[type=range]{width:110px;accent-color:#a78bfa}
-.rx-hint{color:#8a97ab;font-size:13px;margin:10px 0}
-.rx-status{display:flex;align-items:center;gap:10px;font-weight:600;padding:8px 12px;border-radius:8px;background:#0d1524;margin-bottom:10px}
-.rx-status .dot{width:10px;height:10px;border-radius:50%;background:#475569}
+.rx label{color:#9fb0c8;font-size:12px;display:flex;align-items:center;gap:4px} .rx input[type=range]{width:90px;accent-color:#a78bfa}
+.rx-help{position:relative;font-size:12px;color:#9fb0c8} .rx-help summary{cursor:pointer;list-style:none;border:1px solid #2b3a52;border-radius:7px;padding:4px 8px}
+.rx-help[open] div{position:absolute;right:0;top:30px;z-index:5;width:340px;background:#0f1726;border:1px solid #2b3a52;border-radius:8px;padding:10px;box-shadow:0 8px 24px #000a;line-height:1.45}
+.rx-status{display:flex;align-items:center;gap:8px;font-weight:600;padding:4px 10px;border-radius:7px;background:#0d1524;min-width:0;flex:1 1 220px}
+.rx-status span:last-child{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.rx-status .dot{flex:none;width:9px;height:9px;border-radius:50%;background:#475569}
 .rx-status[data-kind=listening] .dot{background:#22c55e;box-shadow:0 0 10px #22c55e;animation:rxpulse 1.6s infinite}
 .rx-status[data-kind=armed]{background:#1e1036} .rx-status[data-kind=armed] .dot{background:#e879f9;box-shadow:0 0 12px #e879f9}
 .rx-status[data-kind=beep]{background:#2a2008} .rx-status[data-kind=beep] .dot{background:#facc15;box-shadow:0 0 12px #facc15}
 .rx-status[data-kind=error] .dot{background:#ef4444}
 @keyframes rxpulse{50%{opacity:.35}}
-.rx-spectrum{width:100%;height:190px;display:block;background:radial-gradient(ellipse at 70% 0%,#111a2e,#05080e);border-radius:8px}
-.rx-wf-wrap{position:relative;margin-top:8px} .rx-waterfall{width:100%;height:150px;display:block;border-radius:8px;background:#000;image-rendering:pixelated}
-.rx-wf-axis{position:absolute;left:6px;top:0;bottom:0;font:10px ui-monospace,monospace;color:#cbd5e1aa;pointer-events:none}
+.rx-viz{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:8px} @media (max-width:760px){.rx-viz{grid-template-columns:1fr}}
+.rx-spectrum{width:100%;height:118px;display:block;background:radial-gradient(ellipse at 70% 0%,#111a2e,#05080e);border-radius:7px}
+.rx-wf-wrap{position:relative} .rx-waterfall{width:100%;height:118px;display:block;border-radius:7px;background:#000;image-rendering:pixelated}
+.rx-wf-axis{position:absolute;left:5px;top:0;bottom:0;font:10px ui-monospace,monospace;color:#cbd5e1aa;pointer-events:none}
 .rx-wf-axis span{position:absolute;left:0;transform:translateY(-50%)}
-.rx-grid{display:grid;grid-template-columns:minmax(220px,1fr) 2fr;gap:10px;margin-top:10px} @media (max-width:720px){.rx-grid{grid-template-columns:1fr}}
-.rx-card{background:#0b1220;border:1px solid #1a2436;border-radius:10px;padding:12px}
-.rx-meter{display:grid;grid-template-columns:34px 1fr 54px;align-items:center;gap:8px;margin:6px 0;font:12px ui-monospace,monospace}
-.rx-meter .bar{position:relative;height:10px;background:#111827;border-radius:5px;overflow:hidden}
+.rx-grid{display:grid;grid-template-columns:minmax(200px,.8fr) 1.4fr 1.5fr;gap:8px;margin-top:8px} @media (max-width:900px){.rx-grid{grid-template-columns:1fr}}
+.rx-card{background:#0b1220;border:1px solid #1a2436;border-radius:8px;padding:8px 10px;min-width:0}
+.rx-meter{display:grid;grid-template-columns:28px 1fr 56px;align-items:center;gap:6px;margin:2px 0 6px;font:11px ui-monospace,monospace}
+.rx-meter .bar{position:relative;height:8px;background:#111827;border-radius:4px;overflow:hidden}
 .rx-meter .fill{height:100%;width:0;background:linear-gradient(90deg,#334155,#64748b);transition:width .1s}
 .rx-meter.hot .fill{background:linear-gradient(90deg,#0891b2,#22d3ee,#e879f9)} .rx-meter .tick{position:absolute;top:0;bottom:0;width:2px;background:#facc15}
 .rx-meter .val{text-align:right;color:#9fb0c8}
-.rx-big{font:600 22px ui-monospace,monospace;color:#e6edf3;margin:4px 0} .rx-big .lbl{font-size:11px;color:#7d8aa0;text-transform:uppercase;letter-spacing:.1em}
-.rx-big .good{color:#4ade80} .rx-big .warnc{color:#fbbf24}
-.rx-code{font:600 18px ui-monospace,monospace;color:#67e8f9;margin-bottom:8px;word-break:break-all}
-.rx table{width:100%;border-collapse:collapse;margin:0} .rx th,.rx td{border:0;border-bottom:1px solid #162033;padding:3px 6px;font-size:13px;text-align:left}
-.rx th{color:#7d8aa0;font-weight:500;width:38%}
-.rx-symbols{display:grid;grid-template-columns:repeat(24,1fr);gap:3px;margin-top:10px}
-.rx-symbols span{font:11px ui-monospace,monospace;text-align:center;padding:4px 0;border-radius:3px;color:#0b1220;background:#1e293b}
-.rx-log{margin-top:10px;max-height:170px;overflow:auto;font:12px ui-monospace,monospace;background:#05080e;border-radius:8px;padding:6px 8px}
-.rx-log-row{padding:2px 0;color:#cbd5e1} .rx-log-row .t{color:#475569} .rx-log-row.dim{color:#64748b} .rx-log-row.warn{color:#fbbf24} .rx-log-row.ok{color:#a7f3d0}
-.rx-log-row code{background:#0f1a2c;color:#67e8f9}
-.rx-small{font:12px ui-monospace,monospace;color:#7d8aa0;display:flex;gap:8px;align-items:center;margin-top:6px}
-.rx-info{margin-top:6px;font:11px ui-monospace,monospace;color:#64748b}
+.rx-beep{display:grid;grid-template-columns:1fr 1fr;gap:6px;font:600 19px ui-monospace,monospace;color:#e6edf3;margin-top:6px}
+.rx-beep .lbl{display:block;font-size:10px;font-weight:500;color:#7d8aa0;text-transform:uppercase;letter-spacing:.1em}
+.rx-beep .good{color:#4ade80} .rx-beep .warnc{color:#fbbf24}
+.rx-small{font:11px ui-monospace,monospace;color:#7d8aa0;display:flex;gap:8px;align-items:center;margin-top:6px}
+.rx-code{font:600 15px ui-monospace,monospace;color:#67e8f9;margin-bottom:4px;word-break:break-all}
+.rx-fields{display:grid;grid-template-columns:1fr 1fr;gap:1px 10px;font-size:12px}
+.rx-fields div{white-space:nowrap;overflow:hidden;text-overflow:ellipsis} .rx-fields span{color:#7d8aa0;margin-right:5px}
+.rx-symbols{display:grid;grid-template-columns:repeat(24,1fr);gap:2px;margin-top:6px}
+.rx-symbols span{font:10px ui-monospace,monospace;text-align:center;padding:2px 0;border-radius:2px;color:#0b1220;background:#1e293b}
+.rx-logcard{display:flex;flex-direction:column;padding:6px 8px}
+.rx-log{flex:1;min-height:84px;max-height:118px;overflow:auto;font:11px/1.5 ui-monospace,monospace}
+.rx-log-row{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:#cbd5e1} .rx-log-row .t{color:#475569}
+.rx-log-row.dim{color:#64748b} .rx-log-row.warn{color:#fbbf24} .rx-log-row.ok{color:#a7f3d0}
+.rx-log-row code{background:none;padding:0;color:#67e8f9}
+.rx-log:empty::before{content:"events appear here";color:#475569}
+.rx-info{margin-top:4px;font:10px ui-monospace,monospace;color:#64748b;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 @media (prefers-color-scheme:dark){body{background:#0d1117;color:#e6edf3} code{background:#161b22}
-  th,td{border-color:#30363d} a{color:#4493f8} .sub{color:#9198a1} .note{background:#2e2a1a;border-color:#6e5a1a}}
+  .tt th,.tt td{border-color:#30363d} a{color:#4493f8} .sub,.note,.tracks-head span,.about{color:#9198a1}}
 </style></head>
 <body>
-<h1>IJRU timing tracks with event trigger</h1>
-<p class="note">Test builds, not official IJRU releases. Based on the IJRU timing tracks v1.0.0
-from <a href="https://ijru.sport/rules/timing-tracks-and-score-sheets">ijru.sport</a>; the
-announcement, beeps and timing are unchanged.</p>
+<header class="top"><h1>IJRU timing tracks with event trigger</h1>
+<span class="note">Test builds, not official IJRU releases · based on the
+<a href="https://ijru.sport/rules/timing-tracks-and-score-sheets">IJRU timing tracks v1.0.0</a>; announcement, beeps and timing unchanged</span></header>
+
+<section class="rx" id="receiver">
+  <div class="rx-head">
+    <h2>Trigger receiver</h2>
+    <div class="rx-status" id="rx-status" data-kind="off"><span class="dot"></span><span id="rx-status-text">Microphone off</span></div>
+    <div class="rx-controls">
+      <button id="rx-start" class="primary">Start listening</button>
+      <button id="rx-test-click">Test tick</button>
+      <label><input type="checkbox" id="rx-click-on" checked> tick at predicted beep</label>
+      <label>trim <input type="range" id="rx-trim" min="-300" max="300" step="5" value="0"> <span id="rx-trim-val">0 ms</span></label>
+      <details class="rx-help"><summary>How to use</summary><div>Turns on this device's microphone and decodes the
+      trigger live. Play a track below on this device or on another one nearby (speaker, not headphones). When a
+      trigger decodes, the page plays a short high <em>tick</em> at the predicted start beep so you can hear how well
+      it lines up with the track's own beep; move <em>trim</em> to correct for your device's audio delay. Audio never
+      leaves your device.</div></details>
+    </div>
+  </div>
+  <div class="rx-viz">
+    <canvas id="rx-spectrum" class="rx-spectrum"></canvas>
+    <div class="rx-wf-wrap"><canvas id="rx-waterfall" class="rx-waterfall"></canvas><div class="rx-wf-axis"><span style="top:15.8%">20k</span><span style="top:36.8%">18k</span><span style="top:57.9%">16k</span><span style="top:78.9%">14k</span></div></div>
+  </div>
+  <div class="rx-grid">
+    <div class="rx-card">
+      <div class="rx-meter" id="rx-meter-mid"><span class="name" style="color:#22d3ee">mid</span><div class="bar"><div class="fill"></div><div class="tick"></div></div><span class="val">0×</span></div>
+      <div class="rx-meter" id="rx-meter-low"><span class="name" style="color:#e879f9">low</span><div class="bar"><div class="fill"></div><div class="tick"></div></div><span class="val">0×</span></div>
+      <div class="rx-beep"><div><span class="lbl">beep in</span><span id="rx-countdown">—</span></div><div><span class="lbl">error</span><span id="rx-beep-err">—</span></div></div>
+      <div class="rx-small">rejected <span id="rx-rejected">0</span><label><input type="checkbox" id="rx-verbose"> log</label></div>
+    </div>
+    <div class="rx-card">
+      <div class="rx-code" id="rx-code">waiting for a trigger…</div>
+      <div class="rx-fields" id="rx-fields"></div>
+      <div class="rx-symbols" id="rx-symbols"></div>
+    </div>
+    <div class="rx-card rx-logcard">
+      <div class="rx-log" id="rx-log"></div>
+      <div class="rx-info" id="rx-info"></div>
+    </div>
+  </div>
+</section>
+<script type="module" src="receiver-ui.js"></script>
+
+<div class="tracks-head"><h2>Tracks</h2><span>Download all MP3s:
+<a href="ijru-trigger-tracks-mid-mp3.zip" download>mid band</a> (26.9 MB) ·
+<a href="ijru-trigger-tracks-low-mp3.zip" download>low band</a> (26.9 MB)</span></div>
+<div class="scroll"><table class="tt">
+<thead><tr><th>Track</th><th>Mid band (default)</th><th>Low band (fallback)</th></tr></thead>
+<tbody>
+<tr><th><b>Single Rope Speed Sprint</b> <span class="sub">SRSS · beep 9.2 s</span><br>
+<code>e.ijru.sp.sr.srss.1.30</code></th>
+<td><div class="pl">
+  <audio controls preload="none" src="mp3/SRSS_trigger_mid.mp3"></audio>
+  <span class="dl"><a href="mp3/SRSS_trigger_mid.mp3" download title="1.6 MB">MP3</a> <a href="wav/SRSS_trigger_mid.wav" download title="3.5 MB">WAV</a></span>
+</div></td>
+<td><div class="pl">
+  <audio controls preload="none" src="mp3/SRSS_trigger_low.mp3"></audio>
+  <span class="dl"><a href="mp3/SRSS_trigger_low.mp3" download title="1.6 MB">MP3</a> <a href="wav/SRSS_trigger_low.wav" download title="3.5 MB">WAV</a></span>
+</div></td></tr>
+<tr><th><b>Single Rope Speed Endurance</b> <span class="sub">SRSE · beep 10.3 s</span><br>
+<code>e.ijru.sp.sr.srse.1.180</code></th>
+<td><div class="pl">
+  <audio controls preload="none" src="mp3/SRSE_trigger_mid.mp3"></audio>
+  <span class="dl"><a href="mp3/SRSE_trigger_mid.mp3" download title="7.6 MB">MP3</a> <a href="wav/SRSE_trigger_mid.wav" download title="16.8 MB">WAV</a></span>
+</div></td>
+<td><div class="pl">
+  <audio controls preload="none" src="mp3/SRSE_trigger_low.mp3"></audio>
+  <span class="dl"><a href="mp3/SRSE_trigger_low.mp3" download title="7.6 MB">MP3</a> <a href="wav/SRSE_trigger_low.wav" download title="16.8 MB">WAV</a></span>
+</div></td></tr>
+<tr><th><b>Single Rope Triple Unders</b> <span class="sub">SRTU · beep 7.8 s</span><br>
+<code>e.ijru.sp.sr.srtu.1.0</code></th>
+<td><div class="pl">
+  <audio controls preload="none" src="mp3/SRTU_trigger_mid.mp3"></audio>
+  <span class="dl"><a href="mp3/SRTU_trigger_mid.mp3" download title="1.6 MB">MP3</a> <a href="wav/SRTU_trigger_mid.wav" download title="3.4 MB">WAV</a></span>
+</div></td>
+<td><div class="pl">
+  <audio controls preload="none" src="mp3/SRTU_trigger_low.mp3"></audio>
+  <span class="dl"><a href="mp3/SRTU_trigger_low.mp3" download title="1.6 MB">MP3</a> <a href="wav/SRTU_trigger_low.wav" download title="3.4 MB">WAV</a></span>
+</div></td></tr>
+<tr><th><b>Single Rope Speed Relay</b> <span class="sub">SRSR · beep 9.9 s</span><br>
+<code>e.ijru.sp.sr.srsr.4.4x30</code></th>
+<td><div class="pl">
+  <audio controls preload="none" src="mp3/SRSR_trigger_mid.mp3"></audio>
+  <span class="dl"><a href="mp3/SRSR_trigger_mid.mp3" download title="5.2 MB">MP3</a> <a href="wav/SRSR_trigger_mid.wav" download title="11.5 MB">WAV</a></span>
+</div></td>
+<td><div class="pl">
+  <audio controls preload="none" src="mp3/SRSR_trigger_low.mp3"></audio>
+  <span class="dl"><a href="mp3/SRSR_trigger_low.mp3" download title="5.2 MB">MP3</a> <a href="wav/SRSR_trigger_low.wav" download title="11.5 MB">WAV</a></span>
+</div></td></tr>
+<tr><th><b>Single Rope Double Unders Relay</b> <span class="sub">SRDR · beep 10.1 s</span><br>
+<code>e.ijru.sp.sr.srdr.2.2x30</code></th>
+<td><div class="pl">
+  <audio controls preload="none" src="mp3/SRDR_trigger_mid.mp3"></audio>
+  <span class="dl"><a href="mp3/SRDR_trigger_mid.mp3" download title="2.8 MB">MP3</a> <a href="wav/SRDR_trigger_mid.wav" download title="6.2 MB">WAV</a></span>
+</div></td>
+<td><div class="pl">
+  <audio controls preload="none" src="mp3/SRDR_trigger_low.mp3"></audio>
+  <span class="dl"><a href="mp3/SRDR_trigger_low.mp3" download title="2.8 MB">MP3</a> <a href="wav/SRDR_trigger_low.wav" download title="6.2 MB">WAV</a></span>
+</div></td></tr>
+<tr><th><b>Double Dutch Speed Relay</b> <span class="sub">DDSR · beep 10.1 s</span><br>
+<code>e.ijru.sp.dd.ddsr.4.4x30</code></th>
+<td><div class="pl">
+  <audio controls preload="none" src="mp3/DDSR_trigger_mid.mp3"></audio>
+  <span class="dl"><a href="mp3/DDSR_trigger_mid.mp3" download title="5.2 MB">MP3</a> <a href="wav/DDSR_trigger_mid.wav" download title="11.5 MB">WAV</a></span>
+</div></td>
+<td><div class="pl">
+  <audio controls preload="none" src="mp3/DDSR_trigger_low.mp3"></audio>
+  <span class="dl"><a href="mp3/DDSR_trigger_low.mp3" download title="5.2 MB">MP3</a> <a href="wav/DDSR_trigger_low.wav" download title="11.5 MB">WAV</a></span>
+</div></td></tr>
+<tr><th><b>Double Dutch Speed Sprint</b> <span class="sub">DDSS · beep 9.8 s</span><br>
+<code>e.ijru.sp.dd.ddss.3.60</code></th>
+<td><div class="pl">
+  <audio controls preload="none" src="mp3/DDSS_trigger_mid.mp3"></audio>
+  <span class="dl"><a href="mp3/DDSS_trigger_mid.mp3" download title="2.8 MB">MP3</a> <a href="wav/DDSS_trigger_mid.wav" download title="6.2 MB">WAV</a></span>
+</div></td>
+<td><div class="pl">
+  <audio controls preload="none" src="mp3/DDSS_trigger_low.mp3"></audio>
+  <span class="dl"><a href="mp3/DDSS_trigger_low.mp3" download title="2.8 MB">MP3</a> <a href="wav/DDSS_trigger_low.wav" download title="6.2 MB">WAV</a></span>
+</div></td></tr>
+</tbody></table></div>
+<details class="about"><summary>About these files</summary>
 <p>Each track carries its event definition lookup code and the time to the start beep as a short
 near-ultrasonic data burst, played twice early in the announcement. A phone listening in the gym
 can decode it and know which event is about to start before the beep.</p>
@@ -70,137 +201,5 @@ stereo below 320 kbps or with the LAME V2 preset, can strip the trigger. Use the
 software needs a different format.</li>
 <li>Every file here was decoded successfully from the published MP3 in simulated clean and
 gym conditions before publishing.</li>
-</ul>
-
-<section class="rx" id="receiver">
-  <div class="rx-head">
-    <h2>Listen for the trigger</h2>
-    <div class="rx-controls">
-      <button id="rx-start" class="primary">Start listening</button>
-      <button id="rx-test-click">Test click</button>
-      <label class="chk"><input type="checkbox" id="rx-click-on" checked> click at predicted beep</label>
-      <label class="trim">trim <input type="range" id="rx-trim" min="-300" max="300" step="5" value="0"> <span id="rx-trim-val">0 ms</span></label>
-    </div>
-  </div>
-  <p class="rx-hint">Turns on this device's microphone and decodes the trigger live. Play a track on this
-  device or on another one nearby (speaker, not headphones). When a trigger decodes, this page plays a short
-  high <em>tick</em> at the predicted start beep, so you can hear how well the prediction lines up with the
-  track's own beep; use <em>trim</em> to correct for your device's audio delay. Nothing leaves your device.</p>
-  <div class="rx-status" id="rx-status" data-kind="off"><span class="dot"></span><span id="rx-status-text">Microphone off</span></div>
-  <canvas id="rx-spectrum" class="rx-spectrum"></canvas>
-  <div class="rx-wf-wrap"><canvas id="rx-waterfall" class="rx-waterfall"></canvas>
-    <div class="rx-wf-axis"><span style="top:15.8%">20k</span><span style="top:36.8%">18k</span><span style="top:57.9%">16k</span><span style="top:78.9%">14k</span></div></div>
-  <div class="rx-grid">
-    <div class="rx-card">
-      <h3>Preamble detector</h3>
-      <div class="rx-meter" id="rx-meter-mid"><span class="name" style="color:#22d3ee">mid</span><div class="bar"><div class="fill"></div><div class="tick"></div></div><span class="val">0×</span></div>
-      <div class="rx-meter" id="rx-meter-low"><span class="name" style="color:#e879f9">low</span><div class="bar"><div class="fill"></div><div class="tick"></div></div><span class="val">0×</span></div>
-      <h3>Start beep</h3>
-      <div class="rx-big"><span class="lbl">in</span> <span id="rx-countdown">—</span></div>
-      <div class="rx-big"><span class="lbl">error</span> <span id="rx-beep-err">—</span></div>
-      <div class="rx-small">rejected candidates: <span id="rx-rejected">0</span>
-        <label class="chk"><input type="checkbox" id="rx-verbose"> show</label></div>
-    </div>
-    <div class="rx-card rx-payload">
-      <h3>Decoded payload</h3>
-      <div class="rx-code" id="rx-code">waiting for a trigger…</div>
-      <table id="rx-fields"></table>
-      <div class="rx-symbols" id="rx-symbols"></div>
-    </div>
-  </div>
-  <div class="rx-log" id="rx-log"></div>
-  <div class="rx-info" id="rx-info"></div>
-</section>
-<script type="module" src="receiver-ui.js"></script>
-
-<p>Download all MP3s: <a href="ijru-trigger-tracks-mid-mp3.zip" download>mid band</a> (26.9 MB) ·
-<a href="ijru-trigger-tracks-low-mp3.zip" download>low band</a> (26.9 MB)</p>
-<div class="scroll"><table>
-<thead><tr><th>Track</th><th>Mid band (default)</th><th>Low band (fallback)</th></tr></thead>
-<tbody>
-<tr><th>Single Rope Speed Sprint<br><span class="sub">SRSS · beep at 9.2 s</span><br>
-<code>e.ijru.sp.sr.srss.1.30</code></th>
-<td>
-  <audio controls preload="none" src="mp3/SRSS_trigger_mid.mp3"></audio>
-  <div class="dl"><a href="mp3/SRSS_trigger_mid.mp3" download>MP3</a> (1.6 MB) ·
-  <a href="wav/SRSS_trigger_mid.wav" download>WAV</a> (3.5 MB)</div>
-</td>
-<td>
-  <audio controls preload="none" src="mp3/SRSS_trigger_low.mp3"></audio>
-  <div class="dl"><a href="mp3/SRSS_trigger_low.mp3" download>MP3</a> (1.6 MB) ·
-  <a href="wav/SRSS_trigger_low.wav" download>WAV</a> (3.5 MB)</div>
-</td></tr>
-<tr><th>Single Rope Speed Endurance<br><span class="sub">SRSE · beep at 10.3 s</span><br>
-<code>e.ijru.sp.sr.srse.1.180</code></th>
-<td>
-  <audio controls preload="none" src="mp3/SRSE_trigger_mid.mp3"></audio>
-  <div class="dl"><a href="mp3/SRSE_trigger_mid.mp3" download>MP3</a> (7.6 MB) ·
-  <a href="wav/SRSE_trigger_mid.wav" download>WAV</a> (16.8 MB)</div>
-</td>
-<td>
-  <audio controls preload="none" src="mp3/SRSE_trigger_low.mp3"></audio>
-  <div class="dl"><a href="mp3/SRSE_trigger_low.mp3" download>MP3</a> (7.6 MB) ·
-  <a href="wav/SRSE_trigger_low.wav" download>WAV</a> (16.8 MB)</div>
-</td></tr>
-<tr><th>Single Rope Triple Unders<br><span class="sub">SRTU · beep at 7.8 s</span><br>
-<code>e.ijru.sp.sr.srtu.1.0</code></th>
-<td>
-  <audio controls preload="none" src="mp3/SRTU_trigger_mid.mp3"></audio>
-  <div class="dl"><a href="mp3/SRTU_trigger_mid.mp3" download>MP3</a> (1.6 MB) ·
-  <a href="wav/SRTU_trigger_mid.wav" download>WAV</a> (3.4 MB)</div>
-</td>
-<td>
-  <audio controls preload="none" src="mp3/SRTU_trigger_low.mp3"></audio>
-  <div class="dl"><a href="mp3/SRTU_trigger_low.mp3" download>MP3</a> (1.6 MB) ·
-  <a href="wav/SRTU_trigger_low.wav" download>WAV</a> (3.4 MB)</div>
-</td></tr>
-<tr><th>Single Rope Speed Relay<br><span class="sub">SRSR · beep at 9.9 s</span><br>
-<code>e.ijru.sp.sr.srsr.4.4x30</code></th>
-<td>
-  <audio controls preload="none" src="mp3/SRSR_trigger_mid.mp3"></audio>
-  <div class="dl"><a href="mp3/SRSR_trigger_mid.mp3" download>MP3</a> (5.2 MB) ·
-  <a href="wav/SRSR_trigger_mid.wav" download>WAV</a> (11.5 MB)</div>
-</td>
-<td>
-  <audio controls preload="none" src="mp3/SRSR_trigger_low.mp3"></audio>
-  <div class="dl"><a href="mp3/SRSR_trigger_low.mp3" download>MP3</a> (5.2 MB) ·
-  <a href="wav/SRSR_trigger_low.wav" download>WAV</a> (11.5 MB)</div>
-</td></tr>
-<tr><th>Single Rope Double Unders Relay<br><span class="sub">SRDR · beep at 10.1 s</span><br>
-<code>e.ijru.sp.sr.srdr.2.2x30</code></th>
-<td>
-  <audio controls preload="none" src="mp3/SRDR_trigger_mid.mp3"></audio>
-  <div class="dl"><a href="mp3/SRDR_trigger_mid.mp3" download>MP3</a> (2.8 MB) ·
-  <a href="wav/SRDR_trigger_mid.wav" download>WAV</a> (6.2 MB)</div>
-</td>
-<td>
-  <audio controls preload="none" src="mp3/SRDR_trigger_low.mp3"></audio>
-  <div class="dl"><a href="mp3/SRDR_trigger_low.mp3" download>MP3</a> (2.8 MB) ·
-  <a href="wav/SRDR_trigger_low.wav" download>WAV</a> (6.2 MB)</div>
-</td></tr>
-<tr><th>Double Dutch Speed Relay<br><span class="sub">DDSR · beep at 10.1 s</span><br>
-<code>e.ijru.sp.dd.ddsr.4.4x30</code></th>
-<td>
-  <audio controls preload="none" src="mp3/DDSR_trigger_mid.mp3"></audio>
-  <div class="dl"><a href="mp3/DDSR_trigger_mid.mp3" download>MP3</a> (5.2 MB) ·
-  <a href="wav/DDSR_trigger_mid.wav" download>WAV</a> (11.5 MB)</div>
-</td>
-<td>
-  <audio controls preload="none" src="mp3/DDSR_trigger_low.mp3"></audio>
-  <div class="dl"><a href="mp3/DDSR_trigger_low.mp3" download>MP3</a> (5.2 MB) ·
-  <a href="wav/DDSR_trigger_low.wav" download>WAV</a> (11.5 MB)</div>
-</td></tr>
-<tr><th>Double Dutch Speed Sprint<br><span class="sub">DDSS · beep at 9.8 s</span><br>
-<code>e.ijru.sp.dd.ddss.3.60</code></th>
-<td>
-  <audio controls preload="none" src="mp3/DDSS_trigger_mid.mp3"></audio>
-  <div class="dl"><a href="mp3/DDSS_trigger_mid.mp3" download>MP3</a> (2.8 MB) ·
-  <a href="wav/DDSS_trigger_mid.wav" download>WAV</a> (6.2 MB)</div>
-</td>
-<td>
-  <audio controls preload="none" src="mp3/DDSS_trigger_low.mp3"></audio>
-  <div class="dl"><a href="mp3/DDSS_trigger_low.mp3" download>MP3</a> (2.8 MB) ·
-  <a href="wav/DDSS_trigger_low.wav" download>WAV</a> (6.2 MB)</div>
-</td></tr>
-</tbody></table></div>
+</ul></details>
 </body></html>

@@ -86,11 +86,15 @@ function latencies() {
 
 // ------------------------------------------------------------------ click at the predicted beep
 function clickBuffer(ctx) {
-  const n = Math.round(0.03 * ctx.sampleRate), b = ctx.createBuffer(1, n, ctx.sampleRate), d = b.getChannelData(0);
+  // ~60 ms tick in the ear's most sensitive range (2.5-4 kHz), normalised to full scale
+  const n = Math.round(0.06 * ctx.sampleRate), b = ctx.createBuffer(1, n, ctx.sampleRate), d = b.getChannelData(0);
+  let peak = 0;
   for (let i = 0; i < n; i++) {
-    const t = i / ctx.sampleRate, env = Math.min(1, t / 0.0005) * Math.exp(-t / 0.006);
-    d[i] = 0.7 * env * (Math.sin(2 * Math.PI * 3150 * t) + 0.5 * Math.sin(2 * Math.PI * 4720 * t));
+    const t = i / ctx.sampleRate, env = Math.min(1, t / 0.0005) * Math.exp(-t / 0.014);
+    d[i] = env * (Math.sin(2 * Math.PI * 2650 * t) + 0.6 * Math.sin(2 * Math.PI * 3970 * t) + 0.3 * Math.sin(2 * Math.PI * 5300 * t));
+    peak = Math.max(peak, Math.abs(d[i]));
   }
+  for (let i = 0; i < n; i++) d[i] *= 0.98 / peak;
   return b;
 }
 
@@ -141,11 +145,11 @@ function handle(ev) {
     const predAbs = a ? a.predictedBeepAbs : ev.predictedBeepAbs; // mean of agreeing copies
     S.armed = { code: p.code, predAbs, copies: preds.length };
     const when = scheduleClick(predAbs);
-    setStatus("armed", `Armed: ${NAMES.event[p.abbr] || p.abbr.toUpperCase()} — beep predicted`);
-    const note = ev.conflict ? " ⚠ disagrees with another decode" : ev.agrees ? " (agrees with earlier copy)" : "";
-    logRow("ok", `${ev.band}: <code>${p.code}</code>, burst ended ${rxSeconds(ev.burstEndAbs)} s, offset ${p.beepOffsetS.toFixed(1)} s → beep at ${rxSeconds(ev.predictedBeepAbs)} s`
+    setStatus("armed", `Armed: ${NAMES.event[p.abbr] || p.abbr.toUpperCase()}, beep predicted`);
+    const note = ev.conflict ? " ⚠ disagrees with another decode" : ev.agrees ? ", agrees" : "";
+    logRow("ok", `${ev.band} <code>${p.code}</code> burst end ${rxSeconds(ev.burstEndAbs)} + ${p.beepOffsetS.toFixed(1)} s → beep ${rxSeconds(ev.predictedBeepAbs)} s`
       + `${ev.erasures ? `, ${ev.erasures} byte erasure${ev.erasures > 1 ? "s" : ""}` : ""}${note}`
-      + `${!$("rx-click-on").checked ? "" : when === null ? " (too late to schedule the tick)" : `; tick scheduled${preds.length > 1 ? ` at the mean of ${preds.length} predictions` : ""}`}`);
+      + `${!$("rx-click-on").checked ? "" : when === null ? ", too late for the tick" : `, tick set${preds.length > 1 ? ` (mean of ${preds.length})` : ""}`}`);
     return;
   }
   if (ev.type === "beep") {
@@ -154,13 +158,13 @@ function handle(ev) {
     $("rx-beep-err").className = Math.abs(err) <= 60 ? "good" : "warnc";
     setStatus("beep", `Start beep heard ${err >= 0 ? "+" : ""}${err.toFixed(0)} ms from the prediction`);
     marker("beep", "♪", 1);
-    logRow("ok", `start beep detected at ${rxSeconds(ev.beepAbs)} s, ${err >= 0 ? "+" : ""}${err.toFixed(0)} ms from prediction (${ev.decodes.length} cop${ev.decodes.length > 1 ? "ies" : "y"})`);
+    logRow("ok", `♪ start beep at ${rxSeconds(ev.beepAbs)} s, <b>${err >= 0 ? "+" : ""}${err.toFixed(0)} ms</b> from prediction (${ev.decodes.length} cop${ev.decodes.length > 1 ? "ies" : "y"})`);
     S.armed = null;
     return;
   }
   if (ev.type === "beep-missed") {
     setStatus("listening", "No start beep heard near the prediction; listening…");
-    logRow("warn", `no start beep found near the predicted ${rxSeconds(ev.predictedBeepAbs)} s`);
+    logRow("warn", `no start beep near the predicted ${rxSeconds(ev.predictedBeepAbs)} s`);
     S.armed = null;
   }
 }
@@ -170,15 +174,14 @@ function showPayload(ev) {
   $("rx-code").textContent = p.code;
   const timing = p.splits > 1 ? `${p.splits} × ${p.splitLength} s (${p.durationS} s)` : p.splitLength ? `${p.splitLength} s` : "open-ended";
   const rows = [
-    ["Event", `${NAMES.event[p.abbr] || p.abbr.toUpperCase()}`],
-    ["Organisation", NAMES.org[p.org] || p.org],
-    ["Type · discipline", `${NAMES.type[p.type] || p.type} · ${NAMES.discipline[p.discipline] || p.discipline}`],
-    ["Participants", p.participants],
-    ["Timing", timing],
-    ["Beep offset", `${p.beepOffsetS.toFixed(1)} s after the burst`],
-    ["Band · score", `<span style="color:${BAND_COLOR[ev.band]}">${ev.band}</span> · ${ev.score.toFixed(0)}× noise`],
+    ["event", `${NAMES.event[p.abbr] || p.abbr.toUpperCase()}`],
+    ["org", NAMES.org[p.org] || p.org],
+    ["type", `${NAMES.type[p.type] || p.type} · ${NAMES.discipline[p.discipline] || p.discipline}`],
+    ["timing", `${timing} · ${p.participants} participant${p.participants === 1 ? "" : "s"}`],
+    ["beep", `${p.beepOffsetS.toFixed(1)} s after burst`],
+    ["band", `<b style="color:${BAND_COLOR[ev.band]}">${ev.band}</b> · ${ev.score.toFixed(0)}× noise${ev.erasures ? ` · ${ev.erasures} erasure${ev.erasures > 1 ? "s" : ""}` : ""}`],
   ];
-  $("rx-fields").innerHTML = rows.map(([k, v]) => `<tr><th>${k}</th><td>${v}</td></tr>`).join("");
+  $("rx-fields").innerHTML = rows.map(([k, v]) => `<div title="${k}: ${v.replace(/<[^>]+>/g, "")}"><span>${k}</span>${v}</div>`).join("");
   $("rx-symbols").innerHTML = ev.symbols.map((s) => {
     const a = Math.max(0.12, Math.min(1, s.conf * 1.6));
     return `<span style="background:color-mix(in srgb, ${BAND_COLOR[ev.band]} ${Math.round(a * 100)}%, transparent)" title="confidence ${s.conf.toFixed(2)}">${s.value.toString(16)}</span>`;
@@ -194,10 +197,11 @@ function setStatus(kind, text) {
 }
 
 function logRow(kind, html) {
-  const t = S ? S.ctx.currentTime.toFixed(1).padStart(6) : "";
+  const t = S ? S.ctx.currentTime.toFixed(1) : "";
   const row = document.createElement("div");
   row.className = `rx-log-row ${kind}`;
   row.innerHTML = `<span class="t">${t}</span> ${html}`;
+  row.title = row.textContent;
   const log = $("rx-log");
   log.prepend(row);
   while (log.children.length > 60) log.lastChild.remove();
@@ -207,9 +211,9 @@ function showInfo() {
   const st = S.track.getSettings();
   const { input, output } = latencies();
   const flag = (v) => (v ? "on" : "off");
-  $("rx-info").textContent = `${S.ctx.sampleRate} Hz · mic ${st.deviceId ? (S.track.label || "default") : "default"} · `
-    + `echo cancel ${flag(st.echoCancellation)}, noise supp. ${flag(st.noiseSuppression)}, auto gain ${flag(st.autoGainControl)} · `
-    + `latency in ${(input * 1000).toFixed(0)} ms / out ${(output * 1000).toFixed(0)} ms (compensated for the click)`;
+  $("rx-info").textContent = `${S.ctx.sampleRate} Hz · echo cancel ${flag(st.echoCancellation)} · noise supp. ${flag(st.noiseSuppression)} · `
+    + `auto gain ${flag(st.autoGainControl)} · latency in ${(input * 1000).toFixed(0)} / out ${(output * 1000).toFixed(0)} ms (tick compensated)`;
+  $("rx-info").title = `${S.track.label || "default microphone"}: ${$("rx-info").textContent}`;
 }
 
 // ------------------------------------------------------------------ drawing
