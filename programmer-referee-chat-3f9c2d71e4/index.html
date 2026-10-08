@@ -1,0 +1,332 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Programmer Referee — WhatsApp chat</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex,nofollow,noarchive">
+<meta name="referrer" content="no-referrer">
+<style>
+  :root {
+    --bg: #efeae2; --pattern: rgba(0,0,0,.035);
+    --them: #ffffff; --me: #d9fdd3; --fg: #111b21; --muted: #667781;
+    --pill: #ffffff; --head: #f0f2f5; --mention: #027eb5; --shadow: rgba(11,20,26,.13);
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #0b141a; --pattern: rgba(255,255,255,.025);
+      --them: #202c33; --me: #005c4b; --fg: #e9edef; --muted: #8696a0;
+      --pill: #182229; --head: #202c33; --mention: #53bdeb; --shadow: rgba(0,0,0,.3);
+    }
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; }
+  body {
+    background-color: var(--bg); color: var(--fg);
+    background-image: radial-gradient(var(--pattern) 1.2px, transparent 1.2px);
+    background-size: 18px 18px;
+    font: 14.2px/1.42 -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+  }
+  header {
+    position: sticky; top: 0; z-index: 5; background: var(--head);
+    display: flex; align-items: center; gap: 12px; padding: 10px 16px;
+    box-shadow: 0 1px 3px var(--shadow);
+  }
+  .avatar {
+    width: 40px; height: 40px; border-radius: 50%; flex-shrink: 0;
+    background: #25d366; color: #fff; display: grid; place-items: center; font-size: 20px;
+  }
+  header h1 { font-size: 16px; font-weight: 500; margin: 0; }
+  header p { font-size: 13px; color: var(--muted); margin: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  header > div { min-width: 0; }
+  main { max-width: 900px; margin: 0 auto; padding: 12px 4% 48px; }
+  .day, .sys { text-align: center; margin: 14px 0 10px; }
+  .day span, .sys span {
+    display: inline-block; background: var(--pill); color: var(--muted);
+    font-size: 12.5px; padding: 5px 12px; border-radius: 8px; box-shadow: 0 1px .5px var(--shadow);
+  }
+  .day span { text-transform: uppercase; letter-spacing: .02em; }
+  .sys span { max-width: 80%; background: color-mix(in srgb, var(--pill) 85%, #ffeecd); }
+  .msg { display: flex; margin: 2px 0; }
+  .msg.first { margin-top: 10px; }
+  .msg.me { justify-content: flex-end; }
+  .bubble {
+    position: relative; max-width: min(75%, 620px); padding: 6px 7px 8px 9px;
+    border-radius: 8px; box-shadow: 0 1px .5px var(--shadow); background: var(--them);
+  }
+  .me .bubble { background: var(--me); }
+  .them.first .bubble { border-top-left-radius: 0; }
+  .me.first .bubble { border-top-right-radius: 0; }
+  .them.first .bubble::before, .me.first .bubble::before {
+    content: ""; position: absolute; top: 0; width: 8px; height: 13px; background: inherit;
+  }
+  .them.first .bubble::before { left: -8px; clip-path: polygon(0 0, 100% 0, 100% 100%); }
+  .me.first .bubble::before { right: -8px; clip-path: polygon(0 0, 100% 0, 0 100%); }
+  .name { font-size: 12.8px; font-weight: 600; margin: 0 0 2px; }
+  .text { white-space: pre-wrap; overflow-wrap: anywhere; }
+  .text::after { content: ""; display: inline-block; width: 64px; }
+  .mention { color: var(--mention); }
+  .text a { color: var(--mention); }
+  .meta { float: right; font-size: 11px; color: var(--muted); margin: -12px 0 -5px 8px; position: relative; top: 4px; }
+  .media { margin: 0 -4px 4px -6px; border-radius: 6px; overflow: hidden; background: #000; }
+  .media img, .media video { display: block; width: 100%; max-height: 70vh; object-fit: contain; }
+  .media-only .bubble { padding: 3px; }
+  .media-only .media { margin: 0; }
+  .media-only .name { padding: 3px 6px 0; }
+  .meta.over {
+    position: absolute; right: 10px; bottom: 9px; float: none; margin: 0; top: auto;
+    color: #fff; text-shadow: 0 0 3px rgba(0,0,0,.6); pointer-events: none;
+  }
+  .omitted { font-style: italic; color: var(--muted); padding-right: 70px; }
+  .bubble:has(video) { width: min(75%, 620px); }
+  .bubble:has(img) { width: min(75%, 520px); }
+  @media (max-width: 600px) {
+    main { padding: 8px 10px 40px; }
+    .bubble, .bubble:has(video), .bubble:has(img) { max-width: 88%; width: auto; }
+    .bubble:has(video), .bubble:has(img) { width: 88%; }
+  }
+  #lb {
+    position: fixed; inset: 0; z-index: 10; background: rgba(0,0,0,.88);
+    display: none; place-items: center; cursor: zoom-out;
+  }
+  #lb.open { display: grid; }
+  #lb img { max-width: 96vw; max-height: 94vh; }
+  footer { text-align: center; color: var(--muted); font-size: 12px; padding: 0 0 32px; }
+</style>
+</head>
+<body>
+<header>
+  <div class="avatar">🪢</div>
+  <div><h1>Programmer Referee</h1><p>Kelvin Man, Rynns TENG, You</p></div>
+</header>
+<main>
+<div class="day"><span>Saturday, August 15, 2026</span></div>
+<div class="sys"><span>Messages and calls are end-to-end encrypted. Only people in this chat can read, listen to, or share them.</span></div>
+<div class="sys"><span>~ Kelvin Man created group “Programmer Referee”</span></div>
+<div class="sys"><span>~ Kelvin Man added you</span></div>
+<div class="msg them first"><div class="bubble"><div class="name" style="color:#e542a3">Kelvin Man</div><div class="text">Hi Everyone, Andrej is one of very important Tech Director of IJRU System, Rynns is from Malaysia and he is super dedicated into jump rope for many years, and he is a programmer who has write his own registration system.
+
+<span class="mention">@Rynns TENG</span> , please introduce yourself and see if you two can further work on the IJRU System.</div><div class="meta">05:18</div></div></div>
+<div class="msg them"><div class="bubble"><div class="text">it would be great if you can show Andrej a bit of your system 😉</div><div class="meta">05:19</div></div></div>
+<div class="msg me first"><div class="bubble"><div class="text">Hi Rynns, great to meet you! Thanks for the introduction, Kelvin!</div><div class="meta">05:21</div></div></div>
+<div class="msg them first"><div class="bubble"><div class="name" style="color:#d3792a">Rynns TENG</div><div class="text">Hi Mr.Andrej. Nice to meet you.</div><div class="meta">06:21</div></div></div>
+<div class="msg them"><div class="bubble"><div class="text">Im Rynns from Malaysia.</div><div class="meta">06:21</div></div></div>
+<div class="msg them"><div class="bubble"><div class="text">👋 I built the GBRSA Registration Portal — it&#x27;s the online registration system for the GBRSA CUP 2026 Jump Rope Championships for my academy.
+
+It&#x27;s a full-stack web app I made with Vue 3 (Composition API) + Vite + TypeScript, using Pinia for state management and Vue Router for the multi-step flow. Data is stored in Firestore (Firebase), with Firebase Auth for admin login, and it&#x27;s hosted on Firebase Hosting with CI/CD via GitHub Actions — every push to main auto-deploys.
+
+A few things I handled under the hood:
+
+* Real-time draft persistence — teams can save and resume registration across devices via Firestore.
+* Live fee calculation driven by event and division rules (Master/Rookie/Open).
+* Document &amp; payment uploads linked directly to each registration record.
+* Admin dashboard for approving/pending/draft workflow management.
+* Excel import &amp; export using xlsx and jszip — I can inject an Excel file straight into the webapp to bulk-load data, and export everything auto-sorted and formatted, ready for scoring.
+
+Basically replaced the old Google Forms + spreadsheet mess with a proper system that validates everything, calculates fees automatically, and does the admin work for us.</div><div class="meta">06:22</div></div></div>
+<div class="msg them"><div class="bubble"><div class="text">I&#x27;m also working on: <strong>GBRSA SupaApp</strong>, a full competition management platform for jump rope / rope skipping events (GB Rope Skipping Academy, Malaysia). It runs an entire competition end-to-end, and live.
+
+<strong>What it does:</strong>
+🏷️ <strong>Registration &amp; scheduling</strong> — athlete entries via Excel/CSV import, team management, auto-generated heat rundowns
+⚖️ <strong>Real-time judging</strong> — Freestyle (Difficulty, Presentation, Required Elements, Technical) and Speed (tap/timing), following IJRU scoring standards
+📊 <strong>Live scoreboard</strong> — built with Vue 3, streaming scores over Firebase Realtime Database (WebSocket) for near-zero latency, with a Firestore fallback so it survives venue firewalls
+📺 <strong>TV display system</strong> — a multi-TV router driving marshal call-up boards, heat displays, freestyle/SRIF displays, live scoreboards, picture displays.
+🎙️ <strong>MC / Mission Control Dashboard</strong> — a live command center for the event host running the whole competition:
+• <strong>Live heat monitor</strong> — every station in the current heat, with judge-ready vs. completed counts and live progress bars
+• <strong>Heat control</strong> — prev/next navigation, heat selector, and judge-readiness matrix (Difficulty / Presentation / Technical / Required Elements) per station
+• <strong>Timing track player</strong> — play/pause/stop for speed events with an armed-confirm stop, plus freestyle song detection base on the events.
+🔊 <strong>Sound management</strong> — a DJ/soundman panel with BGM, sound effects, and remote-triggered audio
+🖨️ <strong>Certificate studio</strong>— participation &amp; result certificates, ID cards, and rundown cards with drag-and-drop editing and batch/ZIP export
+🌐 <strong>Public portal</strong> — live rundown, leaderboard/results, and heat call announcements for spectators
+✍️ <strong>Ops</strong> — Digital agreement signing, crew task management, host control panel, and practice mode
+🔐 <strong>Access management</strong> — QR-based judge device pairing, access keys with session locking, and an organizer control hub
+📱 <strong>PWA</strong> — fully installable and offline-capable
+
+Stack: Vue 3 + Vite + TypeScript + Pinia, with Firebase (Firestore for records + RTDB/WebSocket for low-latency streaming).
+
+Happy to connect and hear what everyone else is building! 🙌</div><div class="meta">06:36</div></div></div>
+<div class="msg them"><div class="bubble"><div class="text">I’ve been a full-time jump rope coach in Malaysia since 2012, managing a local academy and teaching outsource and CCA jump rope programs in schools around Malaysia. 
+
+I started coding as a hobby back during the COVID-19 lockdowns, and I&#x27;ve been tinkering ever since — still constantly learning, driven entirely by my passion for the sport and my love for building things to help my judges, crews, students, parents, and public visitors. 🫡</div><div class="meta">06:41</div></div></div>
+<div class="day"><span>Wednesday, August 19, 2026</span></div>
+<div class="msg them first"><div class="bubble"><div class="name" style="color:#d3792a">Rynns TENG</div><div class="text">Hi everyone! Congratulations on the success of the European Rope Skipping Championships 2026. It was amazing.
+
+Following the end of the European championships, I&#x27;ll be sharing my current project and also reflections from my first visit serving as an AJRU judge in AC2026 back in August.</div><div class="meta">22:57</div></div></div>
+<div class="day"><span>Saturday, August 22, 2026</span></div>
+<div class="msg them first"><div class="bubble"><div class="name" style="color:#d3792a">Rynns TENG</div><div class="media"><video controls preload="none" playsinline poster="media/00003013-VIDEO-2026-08-22-08-40-57-poster.jpg" src="media/00003013-VIDEO-2026-08-22-08-40-57.mp4"></video></div><div class="text">LiveScoreboard &amp; Setup ( Purely for practice, RealTime Competition)
+
+1. Real-Time Dual-Layer Sync (Fast WebSockets + Reliable Database)
+
+Realtime Database (RTDB): Listens via WebSocket listeners. As judges tap their screens at their stations (1 to 12), their scores update on the scoreboard instantly (in milliseconds).
+
+2. Station Cards &amp; Dynamic Layout
+
+Station Number &amp; Status Badge (JUDGING, DONE, SCRATCH, REJUMP, VIDEO PLAYBACK).
+Jumper Name/ Team logo
+
+3. Drag &amp; Drop / Swipe to Reorder:
+
+You can simply touch, press, and drag any station card (e.g. Station 1) and drag it to swap places with another station (e.g. Station 3).
+
+4. Custom Display Layout:
+
+If a specific station or athlete is featured in the main camera view or live stream, you can drag their station card right to the top or front of the screen.</div><div class="meta">08:40</div></div></div>
+<div class="msg them"><div class="bubble"><div class="media"><video controls preload="none" playsinline poster="media/00003014-VIDEO-2026-08-22-08-56-44-poster.jpg" src="media/00003014-VIDEO-2026-08-22-08-56-44.mp4"></video></div><div class="text">Hostpage (Emcee or Tournament Director) - Purely/ Master Announcer / MC / Event Control Hub. 
+
+It is used by the Host/Announcer at the competition venue to control the live flow of the competition heat by heat.
+
+1. Heat Progression Control:
+Move forward/backward through heats (Heat 1 ➔ Heat 2 ➔ Heat 3).
+Displays who is currently jumping on Station 1, Station 2, Station 3, etc.
+
+2. Live Station Status Monitor:
+Monitors all judge stations in real-time (READY, JUDGING, DONE, SCRATCH, VIDEO PLAYBACK).
+
+3. Real-Time Interactions:
+Active Heat Sync- When the Host changes the current heat, the LiveScoreboardView.vue instantly receives the update and shifts its scoreboard display to Heat 5, highlighting current active stations in the speed judges tablets.</div><div class="meta">08:56</div></div></div>
+<div class="msg them"><div class="bubble"><div class="media"><video controls preload="none" playsinline poster="media/00003015-VIDEO-2026-08-22-09-04-45-poster.jpg" src="media/00003015-VIDEO-2026-08-22-09-04-45.mp4"></video></div><div class="text">SpeedJudgeForm (For all speed event)
+
+1. 🟦 Tap-to-Count Area (Main Hit Box)
+Audio &amp; Haptic Feedback: Triggers an instant crisp audio click/ping and device vibration only for Android (triggerVibrate(20)) for physical confirmation.
+Snappy Mechanical Flash (animate-flash): Visual flash effect on tap.
+
+2. 🎛️ Control Bar (Reset, Minus, False Start, Remark, KeyPad)
+
+🔴 RESET- Tapping RESET pops up a safety modal (&quot;Reset Score? Are you sure you want to clear current score to zero?&quot;).
+➖ MINUS- Subtracts 1 from the current score.
+🚨 FALSE START (YES / NO Toggle)- minus 10 points if yes
+
+📝 REMARK
+Single Tap: Opens a text modal to type notes (e.g. &quot;Rope broke at 15s&quot;, &quot;Athlete slip&quot;).
+Auto-Averaging: Typing multiple scores (e.g. &quot;22 24 23&quot;) automatically calculates the average score (23) and sets it.
+Long-Press (Quick Status): Holding REMARK for 0.5 seconds opens Quick Status options:
+
+✅ 📹 VIDEO PLAYBACK: Auto-submits current score with &quot;VIDEO PLAYBACK&quot; remark for official video recount.
+✅ ✕ SCRATCH: Marks entry as Scratch (Score 0).
+✅ ↻ REJUMP: Marks entry as Rejump (Score 0).
+
+🔢 KEYPAD: Manual number pad to type a score directly.</div><div class="meta">09:04</div></div></div>
+<div class="msg them"><div class="bubble"><div class="text">This, i wish to highlight, the remark is very handy when it comes to realtime competition. 
+
+1) The video playback button is also great for notifying the Tournament Director so they can check backstage video playback for an instant response.
+
+2) As for the minus button, it is especially useful for judges who need to subtract more than 1 point. While it might not be ideal for the head judge&#x27;s tablet on the live scoreboard, it works very well for Judge 2 and Judge 3 at the same station.
+
+3) Additionally, the audio feedback feature triggers an instant, crisp audio click. It is helpful, but optional for judges to toggle on or off.</div><div class="meta">09:10</div></div></div>
+<div class="msg them"><div class="bubble"><div class="media"><a href="media/00003017-PHOTO-2026-08-22-09-13-21.jpg" class="zoom"><img loading="lazy" src="media/00003017-PHOTO-2026-08-22-09-13-21.jpg" alt=""></a></div><div class="text">Additionally, for a quick status check of the athletes:
+
+When I served as a judge at AC 2026 in China, judges sometimes needed to identify athlete info, verify their names against their athlete pass ID cards, and show the info in front of the video camera recording. Having a quick status feature directly inside the speed form would come in handy, eliminating the need to return to the station view to check.</div><div class="meta">09:13</div></div></div>
+<div class="msg me first"><div class="bubble"><div class="text">This seems well though-out, lots of similarities with our systems</div><div class="meta">09:13</div></div></div>
+<div class="msg them first"><div class="bubble"><div class="name" style="color:#d3792a">Rynns TENG</div><div class="media"><video controls preload="none" playsinline poster="media/00003019-VIDEO-2026-08-22-09-22-06-poster.jpg" src="media/00003019-VIDEO-2026-08-22-09-22-06.mp4"></video></div><div class="text">MarshalTvDisplay (For all athletes, coaches and team managers)
+
+Marshal Call System manages athlete staging and queueing at the competition venue. Before athletes step onto the competition floor for their heat, they must be called to the Marshalling Area (staging room/warm-up area) so they are lined up and ready.
+
+It works across 3 main views:
+1) Public Website: Shows live called heats on spectator/athlete phones.
+2) Marshal TV Displays: Big screen TVs placed in the warm-up hall.
+3) Display Manager / Admin Control: Used by the Chief Marshal / Admin to trigger calls and change scenes.
+
+Features:
+1. 🟢 LIVE CALL (Active Staging Queue)
+Displays the heats currently being called to the marshalling room. Telling the standby time before the actual heat on live competition.
+
+2. ⏳ STANDBY / UPCOMING HEATS (Next in Line)
+What it does: Displays the next heats on standby (e.g. Standby for Heat 12 &amp; 13).
+Why it&#x27;s useful: Gives coaches and athletes a 5-to-10 minute head start to put on shoes, check ropes, and head toward the staging zone before their official call.</div><div class="meta">09:22</div></div></div>
+<div class="msg them"><div class="bubble"><div class="text">My little opinion:
+
+When I served as the national coach for the Malaysia NGB at the IJRU World Championships 2025 in Kawasaki, Japan, we queued in the 2nd-floor hall. However, we couldn&#x27;t get the actual heat schedule and had to rely entirely on listening for calls from volunteers. Due to the noise and other teams training at the same time, we sometimes missed the standby call or were late in the queue.</div><div class="meta">09:26</div></div></div>
+<div class="msg them"><div class="bubble"><div class="media"><a href="media/00003021-PHOTO-2026-08-22-09-26-43.jpg" class="zoom"><img loading="lazy" src="media/00003021-PHOTO-2026-08-22-09-26-43.jpg" alt=""></a></div><div class="text">Additionally, we could eliminate PowerPoint slides altogether by using an online calling system in the standby area, broadcasted through a big TV or a live website, especially since everyone relies heavily on their cellphones nowadays</div><div class="meta">09:26</div></div></div>
+<div class="msg them media-only"><div class="bubble"><div class="media"><a href="media/00003022-PHOTO-2026-08-22-09-27-41.jpg" class="zoom"><img loading="lazy" src="media/00003022-PHOTO-2026-08-22-09-27-41.jpg" alt=""></a></div><div class="meta over">09:27</div></div></div>
+<div class="msg them media-only"><div class="bubble"><div class="media"><a href="media/00003023-PHOTO-2026-08-22-09-28-20.jpg" class="zoom"><img loading="lazy" src="media/00003023-PHOTO-2026-08-22-09-28-20.jpg" alt=""></a></div><div class="meta over">09:28</div></div></div>
+<div class="msg them"><div class="bubble"><div class="text">CrewWork ( For volunteer or helpers)
+
+it&#x27;s a dedicated mobile/tablet app for Competition Floor Crew &amp; Marshals. It helps venue staff track athlete check-ins, verify upcoming heats, monitor completed scores, and manage winner medal handouts in real-time.
+
+1. 📋 Event Rundown
+Heat Navigation: Easily step through heats (Heat 1, 2, 3...) or open the Heat Selector modal.
+Athlete Staging Status:
+🟢 READY / CHECKED-IN: Tap READY when an athlete arrives at the staging gate.
+🔴 ABSENT: Tap ABSENT if an athlete is missing from their heat.
+
+Live Progress Bar: Shows total checked-in vs. absent counts for the heat
+Live Competition Banner: Displays which heat is currently jumping live on the competition floor
+
+All Crew Devices Are 100% Synced: When one volunteer or marshal taps READY or ABSENT on their phone at Gate A, that check-in status instantly updates across all other crew phones and tablets on the floor in less than a second! 
+
+Zero Double Work or Hassle:
+✅ Volunteers working far away from each other (e.g. Warm-up Gate, Athlete Waiting Tent, and Podium Ceremony Area) never need to shout, walk over, or double-confirm with each other.
+✅ If Volunteer 1 marks Athlete #102 as CHECKED-IN at the entrance gate, Volunteer 2 standing at the competition floor entrance sees #102 READY on their screen immediately.
+✅ If Medal Crew 1 marks 1st Place as COLLECTED at the podium, Medal Crew 2 sees it instantly updated on their tablet.</div><div class="meta">09:32</div></div></div>
+<div class="msg me first"><div class="bubble"><div class="text">We have some new displays coming that combine a few different screens the system had (eg uocoming heats). Things are a lot faster now with AI :) the data is all there and we are releasing a few new things that are already built, working through app stores, etc</div><div class="meta">09:34</div></div></div>
+<div class="msg me"><div class="bubble"><div class="text">A lot of work going to AI judging and integrating that into the existing process without adding too much cost and complexity for organizers</div><div class="meta">09:36</div></div></div>
+<div class="msg me"><div class="bubble"><div class="text">Looks like great stuff you’re building! Always good for the sport to have more innovation. That’s how I got started with this over 10 years ago as a coach too</div><div class="meta">09:37</div></div></div>
+<div class="msg them first media-only"><div class="bubble"><div class="name" style="color:#d3792a">Rynns TENG</div><div class="media"><video controls preload="none" playsinline poster="media/00003028-VIDEO-2026-08-22-09-41-38-poster.jpg" src="media/00003028-VIDEO-2026-08-22-09-41-38.mp4"></video></div><div class="meta over">09:41</div></div></div>
+<div class="msg them"><div class="bubble"><div class="text">TvRouter (The Smart TV Display Engine)
+The component that runs on Venue TVs, Projectors, and Live Stream Screens. Instead of creating separate web apps for every single TV screen in the stadium, TvRouter acts as a smart TV receiver.
+
+Feature:
+Unique TV ID: Each TV or display is assigned an ID
+Dynamic Scene Switching
+
+TvRouter Can Display:
+📢 Marshal Calls: Staging queue &amp; called heats for warm-up areas.
+⏱️ Heat Display: Current live heat timer and event name for stage screens.
+📊 Live Scoreboard: Real-time station scores &amp; tap counters for spectators.
+🤸 Freestyle / SRIF Display: Detailed judge component breakdowns for freestyle events.
+🎮 Interactive Games / Reactions: Audience interactive overlay reactions.
+☕ Custom Break / Notice: Lunch break countdowns or custom sponsor announcements.
+
+✅ All control through online by displaymanager
+Master TV Remote Control Panel used by the venue Tech Director or Admin on their laptop or tablet.
+
+Remote TV Screen Management:
+Lists all connected venue TVs (TV 1, TV 2, TV 3...).
+Allows the admin to change any TV&#x27;s assigned role remotely with one click (e.g. change TV 2 from Live Scoreboard to Marshal Calls).</div><div class="meta">Edited 09:41</div></div></div>
+<div class="msg them"><div class="bubble"><div class="omitted">🎥 Video not included in export</div><div class="meta">09:41</div></div></div>
+<div class="msg them"><div class="bubble"><div class="text">For my own academy&#x27;s competitions, we only display three 55-inch LCD screens instead of a massive LED screen like those used in large tournaments, and sometimes we run our own broadcasting team. Therefore, I need to cut down on the budget by having a system that can handle about 80% of the workload for each jump rope competition.</div><div class="meta">09:44</div></div></div>
+<div class="msg them"><div class="bubble"><div class="text">I truly admire your project and everything! It&#x27;s all about bringing a professional, seamless, and fun experience to everyone in the jump rope community worldwide.</div><div class="meta">09:47</div></div></div>
+<div class="msg them"><div class="bubble"><div class="text">I believe the current RopeScore system is perfect and right on track to generate profit for your team and support future development. I wish IJRU could push this forward more quickly. I have other friends and coaches involved in the Speed Stacking Cup from the World Sport Stacking Association (WSSA) in the USA. Almost everything from A to Z was built by them, and all worldwide NGBs must use their system to host local speed stacking competitions.
+
+Even their website—covering registration, competition promotion by NGBs, the rulebook, the membership ID login system, and almost everything else—brings in big profits. In my country, Malaysia, the Speed Stacking Cup organizes competitions almost every month, and I&#x27;ve heard it&#x27;s also very popular in Hong Kong.</div><div class="meta">09:52</div></div></div>
+<div class="msg them"><div class="bubble"><div class="media"><video controls preload="none" playsinline poster="media/00003034-VIDEO-2026-08-22-09-59-54-poster.jpg" src="media/00003034-VIDEO-2026-08-22-09-59-54.mp4"></video></div><div class="text">I build also GBRSA Registration Portal — System Overview
+
+1. To eliminate traditional Google Forms or Excel submissions.
+2. To simplify the registration process for both competing teams/coaches and tournament organizers (admins).
+
+👥 <strong>1. Managing Large Teams (100+ Athletes Made Easy)</strong>
+For large delegations with 50, 100, or 200+ jumpers, manually typing every name takes forever. The portal makes managing large rosters effortless:
+
+📁 <strong>One-Click Excel / JSON Bulk Import:</strong>
+• Delegation heads can download a pre-formatted Excel template, fill in their team roster, upload it in seconds, or fill it in directly through the online system.
+• The system automatically parses names, IC/passport numbers, and genders for all 100+ athletes instantly.
+
+⚡ <strong>Smart Auto-Fill &amp; Formatting:</strong>
+• Age and birth year are automatically calculated from the IC/passport number, eliminating human error when managing large teams</div><div class="meta">09:59</div></div></div>
+<div class="day"><span>Wednesday, October 7, 2026</span></div>
+<div class="msg them first"><div class="bubble"><div class="name" style="color:#d3792a">Rynns TENG</div><div class="text">Hi Andrej, sorry to bother you. For the SRTU video recording, there is no time limit—it keeps recording until the athlete misses or stops doing Triple Unders. Since we don&#x27;t know when they will stop, I am using a trigger: the timing track audio starts with a 2-second pre-roll standby, the video camera live-records, and the recording stops when the head judge submits the raw score to conclude the end. Is this a safe and reliable method for the future? tq</div><div class="meta">20:36</div></div></div>
+<div class="msg me first"><div class="bubble"><div class="text">Hi yes we are clipping this manually right now</div><div class="meta">20:51</div></div></div>
+<div class="msg me"><div class="bubble"><div class="text">I plan to add a special mode for untimed events</div><div class="meta">20:52</div></div></div>
+<div class="msg me"><div class="bubble"><div class="text">Where the operation had a stop button and we record that on the run</div><div class="meta">20:52</div></div></div>
+<div class="msg me"><div class="bubble"><div class="text">The judge submitting a score would work too</div><div class="meta">20:53</div></div></div>
+<div class="msg them first"><div class="bubble"><div class="name" style="color:#d3792a">Rynns TENG</div><div class="text">For my setup, the host takes control to trigger the video recording directly from the timing tracks and freestyle audio—using the play audio tap and a +5-second post-roll at the end. The host also controls the live scoreboard to change heats and competitor info.</div><div class="meta">21:01</div></div></div>
+<div class="msg them"><div class="bubble"><div class="text">Hope this will work and make things easier!</div><div class="meta">21:01</div></div></div>
+<div class="msg me first"><div class="bubble"><div class="text">Oh that’s similar to how we do it on ours too. It’s pretty reliable to do it that way.</div><div class="meta">21:05</div></div></div>
+<div class="msg them first"><div class="bubble"><div class="name" style="color:#d3792a">Rynns TENG</div><div class="media"><a href="media/00003043-PHOTO-2026-10-07-21-07-53.jpg" class="zoom"><img loading="lazy" src="media/00003043-PHOTO-2026-10-07-21-07-53.jpg" alt=""></a></div><div class="text">Do you plan to implement an auto medal count for the organizer championships? Your team can sell this service to them so they won&#x27;t need to count the medals manually for the manufacturer factory.</div><div class="meta">21:07</div></div></div>
+<div class="msg me first"><div class="bubble"><div class="text">Oh that looks sharp! We have a report that does that but it&#x27;s mostly in Excel -- we have a few things we&#x27;re looking to improve on planning and scheduling. It works but could be a lot easier.</div><div class="meta">21:11</div></div></div>
+</main>
+<footer>Exported WhatsApp conversation · Aug 15 – Oct 7, 2026</footer>
+<div id="lb"><img alt=""></div>
+<script>
+  const lb = document.getElementById('lb'), lbImg = lb.querySelector('img');
+  document.querySelectorAll('a.zoom').forEach(a => a.addEventListener('click', e => {
+    e.preventDefault(); lbImg.src = a.href; lb.classList.add('open');
+  }));
+  lb.addEventListener('click', () => lb.classList.remove('open'));
+  document.addEventListener('keydown', e => { if (e.key === 'Escape') lb.classList.remove('open'); });
+  // Only one video plays at a time.
+  document.querySelectorAll('video').forEach(v => v.addEventListener('play', () =>
+    document.querySelectorAll('video').forEach(o => o !== v && o.pause())));
+</script>
+</body>
+</html>
