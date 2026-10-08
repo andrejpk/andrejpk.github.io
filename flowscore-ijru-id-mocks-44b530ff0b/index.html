@@ -1,0 +1,762 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<title>FlowScore × core-data — Profile & Digital ID mock-ups</title>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<meta name="robots" content="noindex,nofollow,noarchive">
+<meta name="referrer" content="no-referrer">
+<style>
+  /* ── Tokens (mirrors global.css + FlowScore icon palette) ───────────── */
+  :root {
+    --ink: #111118;
+    --coral: #d85a30;
+    --coral-soft: #f3d3c6;
+    --primary: hsl(215 65% 45%);
+    --primary-dark: hsl(215 50% 60%);
+    --bg: #ffffff;
+    --list-bg: hsl(240 4.8% 95.9%);
+    --fg: hsl(240 10% 3.9%);
+    --muted: hsl(240 3.8% 46.1%);
+    --border: hsl(240 5.9% 85%);
+    --success: #1f9d55;
+    --warning: #c98a00;
+    --danger: #d64534;
+    --ios-font: -apple-system, "SF Pro Text", "SF Pro Display", system-ui, sans-serif;
+    --android-font: "Google Sans", Roboto, system-ui, sans-serif;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; padding: 48px 56px 96px;
+    background: #e9e9ee;
+    font-family: var(--ios-font);
+    color: var(--fg);
+  }
+  h1 { font-size: 30px; margin: 0 0 6px; letter-spacing: -0.02em; }
+  .lede { color: #555; max-width: 980px; margin: 0 0 40px; line-height: 1.5; }
+  section.board { margin: 0 0 64px; }
+  section.board > h2 {
+    font-size: 13px; letter-spacing: .12em; text-transform: uppercase;
+    color: #6b6b75; margin: 0 0 18px; font-weight: 600;
+  }
+  .row { display: flex; gap: 40px; flex-wrap: wrap; align-items: flex-start; }
+  figure { margin: 0; width: 390px; }
+  figcaption { font-size: 13px; color: #444; line-height: 1.45; margin-top: 14px; }
+  figcaption b { color: #111; display: block; font-size: 14px; margin-bottom: 2px; }
+
+  /* ── Device frames ──────────────────────────────────────────────────── */
+  .phone {
+    width: 390px; height: 844px; border-radius: 54px; position: relative;
+    overflow: hidden; background: var(--bg);
+    box-shadow: 0 0 0 11px #1b1b1f, 0 0 0 12px #3a3a40, 0 30px 60px rgba(0,0,0,.25);
+  }
+  .phone.android { border-radius: 34px; font-family: var(--android-font); }
+  .phone.dark { background: #000; color: #f2f2f7; }
+  .island {
+    position: absolute; top: 11px; left: 50%; transform: translateX(-50%);
+    width: 124px; height: 36px; border-radius: 20px; background: #000; z-index: 50;
+  }
+  .punch {
+    position: absolute; top: 14px; left: 50%; transform: translateX(-50%);
+    width: 14px; height: 14px; border-radius: 50%; background: #000; z-index: 50;
+  }
+  .status {
+    height: 54px; display: flex; align-items: center; justify-content: space-between;
+    padding: 6px 34px 0 40px; font-weight: 600; font-size: 16px; position: relative; z-index: 40;
+  }
+  .android .status { height: 40px; padding: 4px 22px 0; font-size: 14px; font-weight: 500; }
+  .status .icons { display: flex; gap: 6px; align-items: center; }
+  .bar { width: 18px; height: 11px; border-radius: 3px; border: 1.5px solid currentColor; position: relative; }
+  .bar::after { content: ""; position: absolute; inset: 1.5px 4px 1.5px 1.5px; background: currentColor; border-radius: 1px; }
+  .home-ind { position: absolute; bottom: 8px; left: 50%; transform: translateX(-50%); width: 134px; height: 5px; border-radius: 3px; background: #111; opacity: .85; z-index: 60; }
+  .dark .home-ind, .home-ind.light { background: #fff; }
+  .gesture { position: absolute; bottom: 10px; left: 50%; transform: translateX(-50%); width: 108px; height: 4px; border-radius: 2px; background: #222; opacity: .6; z-index: 60; }
+  .dark .gesture { background: #ddd; }
+
+  /* ── Generic iOS bits ───────────────────────────────────────────────── */
+  .nav { display: flex; align-items: center; justify-content: space-between; padding: 4px 16px 8px; }
+  .nav .title { font-size: 17px; font-weight: 600; }
+  .large-title { font-size: 34px; font-weight: 700; letter-spacing: -0.02em; padding: 2px 20px 10px; }
+  .glass-btn {
+    width: 44px; height: 44px; border-radius: 22px; display: grid; place-items: center;
+    background: rgba(255,255,255,.72); backdrop-filter: blur(20px) saturate(180%);
+    box-shadow: 0 1px 0 rgba(255,255,255,.8) inset, 0 4px 14px rgba(0,0,0,.08), 0 0 0 .5px rgba(0,0,0,.08);
+    font-size: 18px; color: #111;
+  }
+  .dark .glass-btn { background: rgba(60,60,67,.55); color: #fff; box-shadow: 0 1px 0 rgba(255,255,255,.15) inset, 0 0 0 .5px rgba(255,255,255,.12); }
+  .grouped { background: var(--list-bg); }
+  .group { margin: 0 16px 22px; background: #fff; border-radius: 26px; overflow: hidden; }
+  .group-h { font-size: 13px; color: var(--muted); text-transform: uppercase; letter-spacing: .04em; margin: 0 32px 8px; }
+  .cell { display: flex; align-items: center; gap: 12px; padding: 13px 18px; min-height: 50px; font-size: 16px; position: relative; }
+  .cell + .cell::before { content: ""; position: absolute; top: 0; left: 18px; right: 0; border-top: .5px solid var(--border); }
+  .cell .k { color: var(--fg); flex: 1; }
+  .cell .v { color: var(--muted); }
+  .chev { color: #c4c4c9; font-size: 18px; }
+  .sym { width: 30px; height: 30px; border-radius: 8px; display: grid; place-items: center; color: #fff; font-size: 15px; flex: none; }
+  .foot { font-size: 13px; color: var(--muted); margin: -12px 32px 22px; line-height: 1.4; }
+
+  /* ── Avatar / headshot ──────────────────────────────────────────────── */
+  .headshot {
+    border-radius: 50%; flex: none; position: relative; overflow: hidden;
+    background: radial-gradient(circle at 50% 38%, #f1c9a8 0 22%, transparent 23%),
+                radial-gradient(ellipse at 50% 100%, #3b5b8c 0 46%, transparent 47%),
+                linear-gradient(160deg, #cfd8e6, #a9b7cc);
+  }
+  .headshot::after { /* hair */
+    content: ""; position: absolute; left: 30%; right: 30%; top: 14%; height: 18%;
+    background: #3a2a22; border-radius: 50% 50% 30% 30%;
+  }
+  .headshot.sq { border-radius: 14px; }
+
+  /* ── Competition list + menu ────────────────────────────────────────── */
+  .comp-card { margin: 0 16px 12px; background: #fff; border-radius: 22px; padding: 14px 16px; box-shadow: 0 0 0 .5px var(--border); }
+  .comp-card .n { font-weight: 600; font-size: 16px; }
+  .comp-card .m { color: var(--muted); font-size: 13px; margin-top: 3px; }
+  .live-dot { display: inline-block; width: 7px; height: 7px; border-radius: 50%; background: hsl(142 71% 45%); margin-right: 6px; }
+  .menu {
+    position: absolute; top: 108px; right: 14px; width: 288px; z-index: 30;
+    background: rgba(250,250,252,.82); backdrop-filter: blur(30px) saturate(190%);
+    border-radius: 28px; padding: 8px; box-shadow: 0 20px 60px rgba(0,0,0,.22), 0 0 0 .5px rgba(0,0,0,.1);
+  }
+  .menu .me { display: flex; gap: 12px; align-items: center; padding: 10px 10px 12px; border-radius: 20px; background: rgba(255,255,255,.75); }
+  .menu .me .nm { font-weight: 600; font-size: 17px; line-height: 1.2; }
+  .menu .me .sub { font-size: 13px; color: var(--muted); margin-top: 2px; }
+  .menu .item { display: flex; align-items: center; gap: 12px; padding: 12px 12px; font-size: 16px; border-radius: 14px; }
+  .menu .item .ic { width: 22px; text-align: center; color: #333; }
+  .menu .sep { height: .5px; background: rgba(0,0,0,.12); margin: 6px 10px; }
+  .menu .badge-new { margin-left: auto; font-size: 11px; font-weight: 700; color: var(--coral); background: var(--coral-soft); padding: 2px 7px; border-radius: 8px; }
+  .scrim { position: absolute; inset: 0; background: rgba(0,0,0,.08); z-index: 20; }
+
+  /* ── ID card (shared) ───────────────────────────────────────────────── */
+  .idcard {
+    position: relative; border-radius: 26px; overflow: hidden; color: #fff;
+    background:
+      radial-gradient(120% 80% at 110% -10%, rgba(216,90,48,.55), transparent 55%),
+      radial-gradient(90% 70% at -20% 120%, rgba(60,90,160,.45), transparent 60%),
+      linear-gradient(160deg, #1a1a24, var(--ink) 60%);
+    box-shadow: 0 18px 40px rgba(0,0,0,.35), 0 0 0 .5px rgba(255,255,255,.08) inset;
+  }
+  .guilloche {
+    position: absolute; inset: 0; opacity: .14; pointer-events: none;
+    background:
+      repeating-radial-gradient(circle at 85% 20%, transparent 0 6px, rgba(255,255,255,.9) 6px 7px),
+      repeating-radial-gradient(circle at 10% 90%, transparent 0 9px, rgba(255,255,255,.6) 9px 10px);
+    mix-blend-mode: overlay;
+  }
+  .holo {
+    position: absolute; left: 0; right: 0; height: 64px; pointer-events: none;
+    background: linear-gradient(100deg, transparent 10%, rgba(255,120,80,.0) 20%, rgba(255,140,90,.55) 32%, rgba(255,230,120,.5) 40%, rgba(120,230,200,.5) 48%, rgba(120,150,255,.55) 56%, rgba(220,120,255,.35) 64%, transparent 78%);
+    mix-blend-mode: screen; filter: blur(6px); opacity: .8;
+  }
+  .idhead { display: flex; align-items: center; justify-content: space-between; padding: 16px 18px 0; position: relative; }
+  .brand { display: flex; align-items: center; gap: 8px; font-weight: 700; letter-spacing: .14em; font-size: 11px; text-transform: uppercase; }
+  .mark { width: 22px; height: 22px; border-radius: 6px; background: #111118; display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.5px; padding: 2px; box-shadow: 0 0 0 .5px rgba(255,255,255,.25); }
+  .mark i { border-radius: 1.5px; background: rgba(255,255,255,.2); }
+  .mark i.c { background: var(--coral); }
+  .mark i.c2 { background: rgba(216,90,48,.55); }
+  .mark i.c3 { background: rgba(216,90,48,.25); }
+  .idbody { display: flex; gap: 14px; padding: 14px 18px 16px; position: relative; align-items: center; }
+  .idname { font-size: 22px; font-weight: 700; letter-spacing: -0.01em; line-height: 1.1; }
+  .idname-int { font-size: 14px; opacity: .72; margin-top: 3px; }
+  .idmeta { display: flex; gap: 16px; margin-top: 10px; font-size: 11px; }
+  .idmeta .l { opacity: .55; text-transform: uppercase; letter-spacing: .08em; font-size: 9.5px; }
+  .idmeta .val { font-weight: 600; font-size: 13px; margin-top: 2px; font-variant-numeric: tabular-nums; }
+  .chip-row { display: flex; gap: 6px; flex-wrap: wrap; padding: 0 18px 16px; position: relative; }
+  .chip { font-size: 11px; font-weight: 600; padding: 4px 9px; border-radius: 999px; background: rgba(255,255,255,.12); box-shadow: 0 0 0 .5px rgba(255,255,255,.18) inset; }
+  .chip.ok { background: rgba(31,157,85,.22); color: #8ff0b5; }
+  .chip.amber { background: rgba(201,138,0,.24); color: #ffd772; }
+
+  .qrwrap { background: #fff; border-radius: 28px; padding: 18px; position: relative; display: grid; place-items: center; }
+  .qr { display: block; }
+  .ring { position: absolute; inset: -4px; border-radius: 32px; pointer-events: none; }
+  .timer { display: flex; align-items: center; justify-content: center; gap: 8px; font-size: 13px; color: #aeb0bc; margin-top: 12px; font-variant-numeric: tabular-nums; }
+  .timer .dots { display: flex; gap: 4px; }
+  .timer .dots i { width: 6px; height: 6px; border-radius: 50%; background: var(--coral); }
+  .timer .dots i.off { background: rgba(255,255,255,.18); }
+  .clock { font-size: 30px; font-weight: 700; color: #fff; font-variant-numeric: tabular-nums; letter-spacing: .02em; text-align: center; }
+  .clock small { font-size: 16px; opacity: .55; font-weight: 600; }
+
+  .pill-btn { display: flex; align-items: center; justify-content: center; gap: 8px; height: 50px; border-radius: 25px; font-weight: 600; font-size: 16px; }
+  .wallet-apple { background: #000; color: #fff; height: 48px; border-radius: 10px; display: flex; align-items: center; justify-content: center; gap: 10px; font-size: 15px; font-weight: 600; box-shadow: 0 0 0 1px #a6a6a6 inset; }
+  .wallet-ico { width: 30px; height: 22px; border-radius: 4px; position: relative; background: #f0f0f0; overflow: hidden; }
+  .wallet-ico i { position: absolute; left: 0; right: 0; height: 7px; }
+  .wallet-google { background: #1f1f1f; color: #fff; height: 48px; border-radius: 24px; display: flex; align-items: center; justify-content: center; gap: 10px; font-size: 15px; font-weight: 500; }
+  .g-ico { width: 22px; height: 22px; border-radius: 4px; background: conic-gradient(#4285f4 0 25%, #34a853 0 50%, #fbbc04 0 75%, #ea4335 0); }
+
+  /* ── Sheets ─────────────────────────────────────────────────────────── */
+  .sheet { position: absolute; left: 8px; right: 8px; bottom: 8px; border-radius: 40px; background: #fff; padding: 12px 22px 30px; z-index: 30; box-shadow: 0 -10px 40px rgba(0,0,0,.18); }
+  .grabber { width: 36px; height: 5px; border-radius: 3px; background: #d1d1d6; margin: 0 auto 14px; }
+  .sheet h3 { font-size: 24px; margin: 6px 0 6px; letter-spacing: -0.01em; text-align: center; }
+  .sheet p.c { text-align: center; color: var(--muted); font-size: 15px; line-height: 1.4; margin: 0 0 18px; }
+  .feat { display: flex; gap: 14px; align-items: flex-start; margin: 0 4px 16px; }
+  .feat .fi { width: 40px; height: 40px; border-radius: 12px; display: grid; place-items: center; font-size: 19px; flex: none; }
+  .feat .ft { font-weight: 600; font-size: 15px; }
+  .feat .fd { color: var(--muted); font-size: 13.5px; line-height: 1.35; margin-top: 2px; }
+  .primary { background: var(--ink); color: #fff; }
+  .ghost { color: var(--primary); }
+  .fineprint { font-size: 12px; color: var(--muted); text-align: center; line-height: 1.4; margin-top: 12px; }
+
+  /* ── Android / Material 3 ───────────────────────────────────────────── */
+  .m3-top { display: flex; align-items: center; gap: 16px; padding: 8px 16px; height: 64px; font-size: 22px; }
+  .m3-top .ic { width: 40px; height: 40px; display: grid; place-items: center; border-radius: 20px; font-size: 20px; }
+  .m3-surface { background: #f7f2fa; }
+  .m3-card { background: #fff; border-radius: 24px; margin: 0 16px 12px; padding: 4px 0; }
+  .m3-li { display: flex; gap: 16px; align-items: center; padding: 14px 20px; }
+  .m3-li .t { font-size: 16px; }
+  .m3-li .s { font-size: 13.5px; color: #49454f; margin-top: 2px; }
+  .m3-li .lic { width: 24px; text-align: center; color: #49454f; font-size: 19px; }
+  .m3-label { font-size: 14px; font-weight: 500; color: #6750a4; margin: 14px 32px 8px; }
+  .fab-ext { display: inline-flex; gap: 10px; align-items: center; background: #ffd9cc; color: #3b0d00; height: 56px; border-radius: 16px; padding: 0 20px; font-weight: 500; font-size: 15px; box-shadow: 0 3px 8px rgba(0,0,0,.18); }
+  .snack { position: absolute; left: 12px; right: 12px; bottom: 26px; background: #322f35; color: #f5eff7; border-radius: 6px; padding: 14px 16px; font-size: 14px; display: flex; justify-content: space-between; z-index: 40; }
+  .snack b { color: #d0bcff; font-weight: 500; }
+
+  /* NFC pulse */
+  .nfc { position: relative; width: 132px; height: 132px; margin: 0 auto; display: grid; place-items: center; }
+  .nfc span { position: absolute; border-radius: 50%; border: 2px solid rgba(216,90,48,.65); }
+  .nfc span:nth-child(1) { inset: 34px; }
+  .nfc span:nth-child(2) { inset: 18px; opacity: .55; }
+  .nfc span:nth-child(3) { inset: 2px; opacity: .25; }
+  .nfc .core { width: 56px; height: 56px; border-radius: 50%; background: var(--coral); display: grid; place-items: center; color: #fff; font-size: 24px; z-index: 2; box-shadow: 0 0 30px rgba(216,90,48,.6); }
+
+  /* ── Verifier ───────────────────────────────────────────────────────── */
+  .verdict { margin: 0 16px; border-radius: 30px; padding: 22px 20px; color: #fff; position: relative; overflow: hidden; }
+  .verdict.ok { background: linear-gradient(160deg, #1f9d55, #13723c); }
+  .verdict.bad { background: linear-gradient(160deg, #d64534, #a52a1d); }
+  .verdict.warn { background: linear-gradient(160deg, #e0a200, #b07b00); color: #1d1500; }
+  .verdict .big { font-size: 28px; font-weight: 800; letter-spacing: -0.01em; display: flex; align-items: center; gap: 10px; }
+  .verdict .why { font-size: 14.5px; margin-top: 6px; opacity: .92; line-height: 1.4; }
+  .checks { margin: 16px 16px 0; background: #fff; border-radius: 22px; overflow: hidden; }
+  .dark .checks { background: #1c1c1e; }
+  .check { display: flex; gap: 12px; align-items: center; padding: 12px 16px; font-size: 14.5px; position: relative; }
+  .check + .check::before { content: ""; position: absolute; top: 0; left: 46px; right: 0; border-top: .5px solid rgba(128,128,128,.3); }
+  .check .st { width: 22px; height: 22px; border-radius: 50%; display: grid; place-items: center; font-size: 12px; font-weight: 800; color: #fff; flex: none; }
+  .st.ok { background: var(--success); } .st.bad { background: var(--danger); } .st.warn { background: var(--warning); }
+  .check .d { color: #8e8e93; font-size: 12.5px; margin-left: auto; text-align: right; }
+  .person-strip { display: flex; gap: 14px; align-items: center; margin: 16px 16px 0; padding: 14px; background: #fff; border-radius: 22px; }
+  .dark .person-strip { background: #1c1c1e; }
+
+  /* ── Wallet pass renders ────────────────────────────────────────────── */
+  .wallet-bg { background: #000; }
+  .pkpass { margin: 0 14px; border-radius: 14px; color: #fff; overflow: hidden; position: relative;
+    background: linear-gradient(170deg, #1d1d27, var(--ink)); box-shadow: 0 0 0 .5px rgba(255,255,255,.12); }
+  .pkpass .hdr { display: flex; justify-content: space-between; align-items: center; padding: 14px 16px 10px; }
+  .pkpass .lbl { font-size: 10px; letter-spacing: .06em; text-transform: uppercase; color: var(--coral); font-weight: 700; }
+  .pkpass .val { font-size: 16px; font-weight: 500; margin-top: 1px; }
+  .gpass { margin: 0 16px; border-radius: 28px; overflow: hidden; background: #111118; color: #fff; }
+  .gpass .top { padding: 18px 20px 14px; display: flex; align-items: center; gap: 12px; border-bottom: 1px solid rgba(255,255,255,.08); }
+  .gpass .lbl { font-size: 12px; color: #b9b9c6; }
+  .gpass .val { font-size: 16px; margin-top: 2px; }
+
+  .anno { font-size: 11px; color: #fff; background: var(--coral); border-radius: 6px; padding: 2px 6px; font-weight: 700; position: absolute; z-index: 70; box-shadow: 0 2px 8px rgba(0,0,0,.2); }
+  .legend { display: flex; gap: 18px; flex-wrap: wrap; font-size: 13px; color: #444; margin-top: -24px; margin-bottom: 40px; }
+  .legend span { display: inline-flex; align-items: center; gap: 6px; }
+</style>
+</head>
+<body>
+
+<h1>FlowScore × core-data — Profile &amp; Digital ID</h1>
+<p class="lede">
+  Draft mock-ups for connecting the FlowScore app to IJRU core-data: the account menu, profile and the IJRU ID. iOS screens follow iOS 26 (Liquid Glass chrome, inset grouped lists, form sheets).
+  Android screens follow Material 3 (dynamic-colour surfaces, top app bar, extended FAB, snackbars). The ID card uses the FlowScore
+  ink-and-coral palette from the app icon so it reads as one product. The QR codes here are placeholders: the real code is a signed,
+  device-bound presentation that changes every 10 s.
+</p>
+<div class="legend">
+  <span><span class="anno" style="position:static">1</span> Numbered pins refer to notes in the caption below each screen.</span>
+</div>
+
+<!-- ════════════════════════════════════════════════════════════════════ -->
+<section class="board">
+  <h2>A · Account menu &amp; profile (iOS)</h2>
+  <div class="row">
+
+    <!-- A1 menu -->
+    <figure>
+      <div class="phone grouped">
+        <div class="island"></div>
+        <div class="status"><span>9:41</span><span class="icons">●●● <span class="bar"></span></span></div>
+        <div class="nav" style="padding-top:8px">
+          <div class="glass-btn">⌕</div>
+          <div class="title">FlowScore</div>
+          <div class="headshot" style="width:40px;height:40px;box-shadow:0 0 0 2px #fff,0 0 0 3px var(--coral)"></div>
+        </div>
+        <div class="large-title">Competitions</div>
+        <div class="comp-card"><div class="n"><span class="live-dot"></span>World Jump Rope Championships 2026</div><div class="m">Colorado Springs · 12–19 Jul</div></div>
+        <div class="comp-card"><div class="n">European Open</div><div class="m">Herning · 3–6 Oct</div></div>
+        <div class="comp-card"><div class="n">Asian Championships</div><div class="m">Seoul · 14–17 Nov</div></div>
+        <div class="comp-card"><div class="n">Swedish Nationals</div><div class="m">Uppsala · 2–3 Dec</div></div>
+
+        <div class="scrim"></div>
+        <div class="menu">
+          <div class="me">
+            <div class="headshot" style="width:48px;height:48px"></div>
+            <div style="flex:1;min-width:0">
+              <div class="nm">Ingrid Lindqvist</div>
+              <div class="sub">View profile</div>
+            </div>
+            <span class="chev">›</span>
+          </div>
+          <div class="item"><span class="ic">▣</span>My IJRU ID<span class="badge-new">NEW</span></div>
+          <div class="item"><span class="ic">⚙︎</span>Settings</div>
+          <div class="sep"></div>
+          <div class="item"><span class="ic">⇥</span>Log out</div>
+        </div>
+        <span class="anno" style="top:116px;right:300px">1</span>
+        <span class="anno" style="top:190px;right:300px">2</span>
+        <div class="home-ind"></div>
+      </div>
+      <figcaption><b>A1 · Account menu, signed in</b>
+        <span class="anno" style="position:static">1</span> The header shows the core-data headshot, falling back to initials. The menu now opens on a profile row with the preferred name and “View profile” instead of the email. Before core-data responds, or when offline, the name comes from the cached <code>me</code> query or the ID token.
+        <span class="anno" style="position:static">2</span> “My IJRU ID” appears only when the person record exists. On first use it opens the activation sheet (B1).
+      </figcaption>
+    </figure>
+
+    <!-- A2 profile -->
+    <figure>
+      <div class="phone grouped">
+        <div class="island"></div>
+        <div class="status"><span>9:41</span><span class="icons">●●● <span class="bar"></span></span></div>
+        <div class="nav"><div class="glass-btn">✕</div><div class="title"></div><div class="glass-btn" style="font-size:15px">⋯</div></div>
+        <div style="display:flex;flex-direction:column;align-items:center;padding:0 0 18px">
+          <div style="position:relative">
+            <div class="headshot" style="width:104px;height:104px;box-shadow:0 0 0 4px #fff"></div>
+            <div style="position:absolute;right:-2px;bottom:2px;width:32px;height:32px;border-radius:16px;background:#fff;display:grid;place-items:center;box-shadow:0 2px 8px rgba(0,0,0,.15);font-size:14px">📷</div>
+          </div>
+          <div style="font-size:26px;font-weight:700;margin-top:12px;letter-spacing:-.01em">Ingrid Lindqvist</div>
+          <div style="color:var(--muted);font-size:14px;margin-top:2px">🇸🇪 Sweden · m.10432</div>
+        </div>
+
+        <!-- ID teaser card -->
+        <div style="margin:0 16px 22px">
+          <div class="idcard" style="height:116px">
+            <div class="guilloche"></div>
+            <div class="holo" style="top:30px;transform:rotate(-8deg)"></div>
+            <div class="idhead"><div class="brand"><div class="mark"><i></i><i class="c"></i><i></i><i></i><i class="c2"></i><i></i><i></i><i class="c3"></i><i></i></div>IJRU Member ID</div></div>
+            <div style="display:flex;align-items:center;justify-content:space-between;padding:22px 18px 0;position:relative">
+              <div style="font-size:15px;font-weight:600">Your IJRU ID</div>
+              <div style="background:#fff;color:#111;font-weight:600;font-size:14px;padding:8px 14px;border-radius:16px">Show ID</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="group-h">Personal</div>
+        <div class="group">
+          <div class="cell"><span class="k">Name</span><span class="v">Ingrid Lindqvist</span></div>
+          <div class="cell"><span class="k">Preferred name</span><span class="v">Inga</span></div>
+          <div class="cell"><span class="k">Sport nationality</span><span class="v">Sweden (SWE)</span></div>
+          <div class="cell"><span class="k">Date of birth</span><span class="v">14 Mar 1998</span></div>
+        </div>
+        <div class="foot">Sport nationality and date of birth can only be changed by your national federation. <span style="color:var(--primary)">Request a correction</span></div>
+        <div class="group-h">Account</div>
+        <div class="group">
+          <div class="cell"><span class="k">Email</span><span class="v">ingrid@example.se</span></div>
+          <div class="cell"><span class="k">Devices with your ID</span><span class="v">2</span><span class="chev">›</span></div>
+        </div>
+        <div class="home-ind"></div>
+      </div>
+      <figcaption><b>A2 · Profile (form sheet, large detent)</b>
+        The profile is a modal stack pushed from the menu. The ID teaser is a single, obvious entry point to their IJRU ID. Fields core-data locks (nationality, DOB once set) are read-only and come with a correction path. Tapping the camera badge changes the headshot (phase 2+, subject to the photo-governance decision). “Devices” lists each phone's credential and lets the user revoke a lost one.
+      </figcaption>
+    </figure>
+
+    <!-- A3 no person yet -->
+    <figure>
+      <div class="phone grouped">
+        <div class="island"></div>
+        <div class="status"><span>9:41</span><span class="icons">●●● <span class="bar"></span></span></div>
+        <div class="nav"><div class="glass-btn">✕</div><div class="title">Profile</div><div style="width:44px"></div></div>
+        <div style="display:flex;flex-direction:column;align-items:center;padding:30px 28px 10px;text-align:center">
+          <div style="width:96px;height:96px;border-radius:48px;background:#fde7de;display:grid;place-items:center;font-size:38px;font-weight:700;color:var(--coral)">IL</div>
+          <div style="font-size:24px;font-weight:700;margin-top:16px">Finish your IJRU profile</div>
+          <div style="color:var(--muted);font-size:15px;line-height:1.45;margin-top:8px">You're signed in as <b style="color:var(--fg)">ingrid@example.se</b>, but there's no IJRU member record linked to this account yet. You need one for your digital ID.</div>
+        </div>
+        <div class="group" style="margin-top:18px">
+          <div class="cell"><span class="k">Given name</span><span class="v">Ingrid</span></div>
+          <div class="cell"><span class="k">Family name</span><span class="v">Lindqvist</span></div>
+          <div class="cell"><span class="k">Sport nationality</span><span class="v" style="color:var(--primary)">Choose…</span><span class="chev">›</span></div>
+        </div>
+        <div class="foot">Name and nationality appear on your ID. Your nationality can't be changed later without your federation.</div>
+        <div style="position:absolute;left:20px;right:20px;bottom:42px">
+          <div class="pill-btn primary">Create profile</div>
+          <div class="fineprint">Already a member under another email? <span style="color:var(--primary)">Contact your federation</span></div>
+        </div>
+        <div class="home-ind"></div>
+      </div>
+      <figcaption><b>A3 · Signed in, no core-data person</b>
+        <code>me</code> returns <code>null</code> until the Keycloak sync or <code>createPersonSelf</code> links a person. Names are prefilled from the ID token. Creating the record calls <code>createPersonSelf</code>. The duplicate-member path is a link out, because merging (<code>replacedBy</code>) is an admin operation.
+      </figcaption>
+    </figure>
+  </div>
+</section>
+
+<!-- ════════════════════════════════════════════════════════════════════ -->
+<section class="board">
+  <h2>B · Digital ID (iOS)</h2>
+  <div class="row">
+
+    <!-- B1 activation -->
+    <figure>
+      <div class="phone grouped">
+        <div class="island"></div>
+        <div class="status"><span>9:41</span><span class="icons">●●● <span class="bar"></span></span></div>
+        <div style="padding:30px 20px;opacity:.35">
+          <div class="large-title" style="padding:0">Profile</div>
+        </div>
+        <div class="scrim" style="background:rgba(0,0,0,.25)"></div>
+        <div class="sheet" style="top:86px">
+          <div class="grabber"></div>
+          <div style="display:flex;justify-content:center;margin:6px 0 8px">
+            <div class="idcard" style="width:210px;height:128px;transform:rotate(-4deg)">
+              <div class="guilloche"></div><div class="holo" style="top:40px;transform:rotate(-10deg)"></div>
+              <div class="idhead" style="padding:12px 12px 0"><div class="brand" style="font-size:8px"><div class="mark" style="width:16px;height:16px"><i></i><i class="c"></i><i></i><i></i><i class="c2"></i><i></i><i></i><i class="c3"></i><i></i></div>IJRU</div></div>
+              <div style="display:flex;gap:10px;padding:14px 12px;align-items:center;position:relative">
+                <div class="headshot sq" style="width:44px;height:52px;border-radius:8px"></div>
+                <div><div style="font-weight:700;font-size:14px">Ingrid Lindqvist</div><div style="font-size:10px;opacity:.6">m.10432 · SWE</div></div>
+              </div>
+            </div>
+          </div>
+          <h3>Your IJRU ID</h3>
+          <p class="c">Your official IJRU member ID, issued by IJRU and kept on your iPhone.</p>
+          <div class="feat"><div class="fi" style="background:#fde7de;color:var(--coral)">⟳</div><div><div class="ft">Can't be copied</div><div class="fd">The code changes every few seconds and only works from this iPhone, so screenshots and photos won't pass a check.</div></div></div>
+          <div class="feat"><div class="fi" style="background:#e3ecf9;color:var(--primary)">✓</div><div><div class="ft">Verified by IJRU</div><div class="fd">Your name, photo and member number come straight from your IJRU membership record.</div></div></div>
+          <div class="feat"><div class="fi" style="background:#e7f5ec;color:var(--success)">⛨</div><div><div class="ft">You decide what's shared</div><div class="fd">Name, photo, member number and sport nationality. Never your date of birth or email.</div></div></div>
+          <div class="pill-btn primary" style="margin-top:6px">Add my IJRU ID</div>
+          <div class="pill-btn ghost" style="height:44px">Not now</div>
+        </div>
+        <div class="home-ind"></div>
+      </div>
+      <figcaption><b>B1 · Activation (explicit opt-in)</b>
+        Shown once per device. On confirm, the app creates a Secure Enclave P-256 key, gets an App Attest assertion over its public key, and calls <code>issueIdCredential</code>. Face ID here confirms the person holding the phone. It is not needed every time the ID is shown (a setting turns that on).
+      </figcaption>
+    </figure>
+
+    <!-- B2 live ID -->
+    <figure>
+      <div class="phone dark" style="background:radial-gradient(120% 60% at 50% 0%, #2a1a16 0%, #000 60%)">
+        <div class="island"></div>
+        <div class="status" style="color:#fff"><span>9:41</span><span class="icons">●●● <span class="bar"></span></span></div>
+        <div class="nav"><div class="glass-btn">✕</div><div class="title" style="color:#fff">IJRU ID</div><div class="glass-btn" style="font-size:15px">⋯</div></div>
+
+        <div style="margin:4px 16px 0">
+          <div class="idcard">
+            <div class="guilloche"></div>
+            <div class="holo" style="top:56px;transform:rotate(-12deg)"></div>
+            <div class="idhead"><div class="brand"><div class="mark"><i></i><i class="c"></i><i></i><i></i><i class="c2"></i><i></i><i></i><i class="c3"></i><i></i></div>IJRU Member ID</div><span style="font-size:11px;opacity:.6">2026</span></div>
+            <div class="idbody">
+              <div class="headshot sq" style="width:78px;height:96px"></div>
+              <div style="min-width:0">
+                <div class="idname">Ingrid Lindqvist</div>
+                <div class="idname-int">“Inga”</div>
+                <div class="idmeta">
+                  <div><div class="l">Member</div><div class="val">m.10432</div></div>
+                  <div><div class="l">Nation</div><div class="val">🇸🇪 SWE</div></div>
+                </div>
+              </div>
+            </div>
+            <div class="chip-row"><span class="chip ok">● Verified by IJRU</span></div>
+          </div>
+        </div>
+
+        <div style="margin:18px 54px 0;position:relative">
+          <div class="qrwrap">
+            <svg class="qr" data-seed="7" width="246" height="246"></svg>
+            <svg class="ring" viewBox="0 0 290 290" preserveAspectRatio="none" style="width:calc(100% + 8px);height:calc(100% + 8px)">
+              <rect x="2" y="2" width="286" height="286" rx="32" fill="none" stroke="rgba(216,90,48,.25)" stroke-width="4"/>
+              <rect x="2" y="2" width="286" height="286" rx="32" fill="none" stroke="#d85a30" stroke-width="4" stroke-linecap="round" pathLength="100" stroke-dasharray="64 100"/>
+            </svg>
+          </div>
+        </div>
+        <div class="timer"><span class="dots"><i></i><i></i><i></i><i></i><i class="off"></i><i class="off"></i></span>New code in 6 s</div>
+        <div class="clock" style="margin-top:14px">14:07:<span>32</span> <small>CEST</small></div>
+        <div style="text-align:center;color:#8e8e93;font-size:12.5px;margin-top:4px">Show this code when you're asked for your IJRU ID.</div>
+
+        <span class="anno" style="top:196px;left:22px">1</span>
+        <span class="anno" style="top:380px;left:40px">2</span>
+        <span class="anno" style="top:640px;left:66px">3</span>
+        <span class="anno" style="top:672px;left:318px">4</span>
+        <div class="home-ind light"></div>
+      </div>
+      <figcaption><b>B2 · Live ID</b>
+        <span class="anno" style="position:static">1</span> The holographic band is driven by the gyroscope (Reanimated <code>useAnimatedSensor</code>), so a photo or video won't respond to “tilt it for me”. It is static when Reduce Motion is on.
+        <span class="anno" style="position:static">2</span> A signed, device-bound presentation, re-signed every 10 s with a crossfade. Screen capture is blocked on this screen (iOS 13+, Android FLAG_SECURE), and the app switcher blurs it.
+        <span class="anno" style="position:static">3</span> The countdown is shown as six segments and the progress ring.
+        <span class="anno" style="position:static">4</span> A live clock with seconds lets officials spot a frozen image by eye.
+      </figcaption>
+    </figure>
+
+    <!-- B3 wallet opt-in -->
+    <figure>
+      <div class="phone dark" style="background:#000">
+        <div class="island"></div>
+        <div class="status" style="color:#fff"><span>9:41</span><span class="icons">●●● <span class="bar"></span></span></div>
+        <div style="opacity:.3;margin-top:8px">
+          <div style="margin:4px 16px 0"><div class="idcard" style="height:200px"><div class="guilloche"></div></div></div>
+        </div>
+        <div class="sheet" style="top:150px;background:#1c1c1e;color:#f2f2f7">
+          <div class="grabber" style="background:#48484a"></div>
+          <h3>Add to Apple Wallet?</h3>
+          <p class="c" style="color:#98989f">Keep your IJRU ID in Wallet alongside your other cards.</p>
+          <div class="feat"><div class="fi" style="background:#2c2c2e;color:#ffd772">▣</div><div><div class="ft">Always at hand</div><div class="fd" style="color:#98989f">Open it straight from Wallet, no need to find the app first.</div></div></div>
+          <div class="feat"><div class="fi" style="background:#2c2c2e;color:#8ff0b5">⟳</div><div><div class="ft">Stays up to date</div><div class="fd" style="color:#98989f">Name and photo changes reach the pass automatically.</div></div></div>
+          <div class="feat"><div class="fi" style="background:#2c2c2e;color:#9ec1ff">⌫</div><div><div class="ft">Remove at any time</div><div class="fd" style="color:#98989f">Deleting the pass or revoking this device turns the pass invalid.</div></div></div>
+          <div class="wallet-apple" style="margin-top:8px">
+            <span class="wallet-ico"><i style="top:0;background:#3fa9f5"></i><i style="top:5px;background:#f6b11a"></i><i style="top:10px;background:#36c06f"></i><i style="top:15px;background:#f06455"></i></span>
+            Add to Apple Wallet
+          </div>
+          <div class="pill-btn" style="color:#9ec1ff;height:44px;margin-top:6px">Not now</div>
+          <div class="fineprint" style="color:#8e8e93">If you're asked for a live code, open your IJRU ID in FlowScore.</div>
+        </div>
+        <div class="home-ind light"></div>
+      </div>
+      <figcaption><b>B3 · Wallet opt-in</b>
+        Offered once after activation, and again from the ⋯ menu. It explains honestly what the Wallet pass can and can't do. The button is Apple's official <code>PKAddPassButton</code>, rendered natively by the identity module, and tapping it opens the system <code>PKAddPassesViewController</code>.
+      </figcaption>
+    </figure>
+  </div>
+</section>
+
+<!-- ════════════════════════════════════════════════════════════════════ -->
+<section class="board">
+  <h2>C · Android (Material 3)</h2>
+  <div class="row">
+
+    <!-- C1 Android profile -->
+    <figure>
+      <div class="phone android m3-surface">
+        <div class="punch"></div>
+        <div class="status"><span>9:41</span><span class="icons">▾ ▴ <span class="bar"></span></span></div>
+        <div class="m3-top"><span class="ic">←</span><span style="flex:1">Profile</span><span class="ic">⋮</span></div>
+        <div style="display:flex;gap:16px;align-items:center;padding:6px 24px 20px">
+          <div class="headshot" style="width:72px;height:72px"></div>
+          <div><div style="font-size:24px">Ingrid Lindqvist</div><div style="color:#49454f;font-size:14px;margin-top:2px">🇸🇪 Sweden · m.10432</div></div>
+        </div>
+        <div style="margin:0 16px 14px">
+          <div class="idcard" style="border-radius:28px;height:150px">
+            <div class="guilloche"></div><div class="holo" style="top:50px;transform:rotate(-8deg)"></div>
+            <div class="idhead"><div class="brand"><div class="mark"><i></i><i class="c"></i><i></i><i></i><i class="c2"></i><i></i><i></i><i class="c3"></i><i></i></div>IJRU Member ID</div></div>
+            <div style="padding:18px 18px 0;position:relative;font-size:15px;font-weight:500">Your IJRU ID</div>
+            <div style="position:absolute;right:16px;bottom:16px;background:#ffd9cc;color:#3b0d00;padding:10px 18px;border-radius:20px;font-weight:500;font-size:14px">Show ID</div>
+          </div>
+        </div>
+        <div style="margin:0 16px 8px" class="wallet-google"><span class="g-ico"></span>Add to Google Wallet</div>
+        <div class="m3-label">Personal</div>
+        <div class="m3-card">
+          <div class="m3-li"><span class="lic">☺</span><div><div class="t">Preferred name</div><div class="s">Inga</div></div></div>
+          <div class="m3-li"><span class="lic">⚑</span><div><div class="t">Sport nationality</div><div class="s">Sweden (SWE) · set by your federation</div></div></div>
+        </div>
+        <div class="m3-label">Security</div>
+        <div class="m3-card">
+          <div class="m3-li"><span class="lic">▤</span><div style="flex:1"><div class="t">Devices with your ID</div><div class="s">Pixel 9 (this device) · iPhone 16</div></div><span style="color:#49454f">›</span></div>
+          <div class="m3-li"><span class="lic">⌁</span><div style="flex:1"><div class="t">Tap to show ID</div><div class="s">Only while the ID screen is open</div></div>
+            <span style="width:52px;height:32px;border-radius:16px;background:#6750a4;position:relative"><span style="position:absolute;right:4px;top:4px;width:24px;height:24px;border-radius:12px;background:#fff"></span></span></div>
+        </div>
+        <div class="gesture"></div>
+      </div>
+      <figcaption><b>C1 · Android profile</b>
+        A Material 3 top app bar and list items, with an edge-to-edge layout and predictive back. The “Add to Google Wallet” button follows Google's brand guidelines and calls <code>PayClient.savePassesJwt</code>. The NFC toggle controls whether the HCE service answers taps only while the ID screen is open (the default) or whenever the phone is unlocked.
+      </figcaption>
+    </figure>
+
+    <!-- C2 Android NFC -->
+    <figure>
+      <div class="phone android dark" style="background:radial-gradient(120% 60% at 50% 0%, #2a1a16 0%, #0b0b0f 60%)">
+        <div class="punch"></div>
+        <div class="status" style="color:#fff"><span>9:41</span><span class="icons">▾ ▴ <span class="bar"></span></span></div>
+        <div class="m3-top" style="color:#fff"><span class="ic">←</span><span style="flex:1">IJRU ID</span><span class="ic">⋮</span></div>
+        <div style="margin:0 16px">
+          <div class="idcard" style="border-radius:28px">
+            <div class="guilloche"></div><div class="holo" style="top:56px;transform:rotate(-12deg)"></div>
+            <div class="idhead"><div class="brand"><div class="mark"><i></i><i class="c"></i><i></i><i></i><i class="c2"></i><i></i><i></i><i class="c3"></i><i></i></div>IJRU Member ID</div></div>
+            <div class="idbody">
+              <div class="headshot sq" style="width:70px;height:86px"></div>
+              <div><div class="idname">Ingrid Lindqvist</div><div class="idmeta"><div><div class="l">Member</div><div class="val">m.10432</div></div><div><div class="l">Nation</div><div class="val">🇸🇪 SWE</div></div></div></div>
+            </div>
+            <div class="chip-row"><span class="chip ok">● Verified by IJRU</span></div>
+          </div>
+        </div>
+
+        <!-- segmented -->
+        <div style="display:flex;margin:18px 40px 0;border:1px solid #49454f;border-radius:20px;overflow:hidden;font-size:14px;color:#e6e0e9">
+          <div style="flex:1;text-align:center;padding:9px 0">QR code</div>
+          <div style="flex:1;text-align:center;padding:9px 0;background:#4a2a20;color:#ffd9cc;font-weight:500">✓ Tap (NFC)</div>
+        </div>
+
+        <div style="margin-top:34px" class="nfc"><span></span><span></span><span></span><div class="core">⌁</div></div>
+        <div style="text-align:center;color:#fff;font-size:22px;margin-top:22px">Hold near the reader</div>
+        <div style="text-align:center;color:#a8a3ad;font-size:14px;margin:8px 36px 0;line-height:1.45">Touch the back of your phone to the reader or the official's phone.</div>
+        <div class="snack"><span>Verified by Officials Desk 3</span><b>Done</b></div>
+        <div class="gesture"></div>
+      </div>
+      <figcaption><b>C2 · NFC tap</b>
+        HCE <code>HostApduService</code> (category “other”, proprietary AID). The reader sends a fresh nonce and the phone signs it with its Keystore (StrongBox) key, so the response can't be replayed, unlike a QR code. Works with no network. The snackbar confirms when a reader has accepted the presentation. QR remains one tap away.
+      </figcaption>
+    </figure>
+
+    <!-- C3 Google Wallet pass -->
+    <figure>
+      <div class="phone android" style="background:#fff">
+        <div class="punch"></div>
+        <div class="status"><span>9:41</span><span class="icons">▾ ▴ <span class="bar"></span></span></div>
+        <div class="m3-top"><span class="ic">←</span><span style="flex:1"></span><span class="ic">⋮</span></div>
+        <div class="gpass">
+          <div class="top">
+            <div class="mark" style="width:36px;height:36px;border-radius:18px;padding:6px"><i></i><i class="c"></i><i></i><i></i><i class="c2"></i><i></i><i></i><i class="c3"></i><i></i></div>
+            <div style="font-size:15px">International Jump Rope Union</div>
+          </div>
+          <div style="padding:16px 20px 4px;display:flex;justify-content:space-between;align-items:flex-start">
+            <div><div class="lbl">Member ID</div><div style="font-size:26px;margin-top:2px">Ingrid Lindqvist</div></div>
+            <div class="headshot" style="width:56px;height:56px"></div>
+          </div>
+          <div style="display:flex;gap:28px;padding:10px 20px 18px">
+            <div><div class="lbl">Member no.</div><div class="val">m.10432</div></div>
+            <div><div class="lbl">Sport nationality</div><div class="val">SWE</div></div>
+          </div>
+          <div style="background:#fff;margin:0 20px 10px;border-radius:16px;padding:16px;display:grid;place-items:center">
+            <svg class="qr" data-seed="21" width="196" height="196"></svg>
+            <div style="color:#444;font-size:12px;margin-top:8px">⟳ Code refreshes automatically</div>
+          </div>
+          <div style="height:18px;background:linear-gradient(90deg,var(--coral),#ff9b6a)"></div>
+        </div>
+        <div style="padding:16px 28px;color:#49454f;font-size:13.5px;line-height:1.45">Google Wallet <b>Generic pass</b> with <code>rotatingBarcode</code> (TOTP). The static part carries an issuer-signed credential that verifies offline. The TOTP part upgrades the result to “live” when the verifier is online.</div>
+        <div class="gesture"></div>
+      </div>
+      <figcaption><b>C3 · Google Wallet pass</b>
+        Google Wallet is the one wallet that can rotate a code natively, so the Android Wallet pass is nearly as strong as the in-app ID. Smart Tap (NFC from Wallet) is a later stretch goal: it needs a Redemption Issuer and Collector ID, and only works with certified terminals.
+      </figcaption>
+    </figure>
+  </div>
+</section>
+
+<!-- ════════════════════════════════════════════════════════════════════ -->
+<section class="board">
+  <h2>D · Verifying (official's phone) &amp; Apple Wallet</h2>
+  <div class="row">
+
+    <!-- D1 valid -->
+    <figure>
+      <div class="phone dark" style="background:#000">
+        <div class="island"></div>
+        <div class="status" style="color:#fff"><span>9:41</span><span class="icons">●●● <span class="bar"></span></span></div>
+        <div class="nav"><div class="glass-btn">✕</div><div class="title" style="color:#fff">Verify ID</div><div class="glass-btn" style="font-size:14px">⚙︎</div></div>
+        <div class="verdict ok" style="margin-top:6px">
+          <div class="big">✓ Valid · live code</div>
+          <div class="why">Signed by IJRU, presented from the holder's phone 2 s ago.</div>
+        </div>
+        <div class="person-strip">
+          <div class="headshot sq" style="width:96px;height:118px"></div>
+          <div>
+            <div style="font-size:22px;font-weight:700;line-height:1.15">Ingrid Lindqvist</div>
+            <div style="color:#98989f;font-size:14px;margin-top:3px">“Inga” · m.10432</div>
+            <div style="font-size:15px;margin-top:10px">🇸🇪 Sweden (SWE)</div>
+          </div>
+        </div>
+        <div style="text-align:center;color:#98989f;font-size:13px;margin:10px 30px 0">Compare the photo with the person in front of you.</div>
+        <div class="checks">
+          <div class="check"><span class="st ok">✓</span>Issuer signature<span class="d">IJRU key 2026-a</span></div>
+          <div class="check"><span class="st ok">✓</span>Device signature<span class="d">Secure Enclave</span></div>
+          <div class="check"><span class="st ok">✓</span>Code freshness<span class="d">2 s · window ±20 s</span></div>
+          <div class="check"><span class="st ok">✓</span>Not revoked<span class="d">list synced 3 h ago</span></div>
+          <div class="check"><span class="st ok">✓</span>Not seen on another phone<span class="d">replay cache</span></div>
+        </div>
+        <div style="position:absolute;left:16px;right:16px;bottom:40px" class="pill-btn" ><span style="background:#2c2c2e;color:#fff;width:100%;height:50px;border-radius:25px;display:flex;align-items:center;justify-content:center;font-weight:600">Scan next</span></div>
+        <div class="home-ind light"></div>
+      </div>
+      <figcaption><b>D1 · Valid, verified fully offline</b>
+        The in-app verifier is gated by role (event admin/viewer or federation). It shows the photo from the presentation-authorised fetch when online, or from the verifier's pre-synced event roster when offline. Every check is listed so officials can trust the result and explain it.
+      </figcaption>
+    </figure>
+
+    <!-- D2 expired -->
+    <figure>
+      <div class="phone dark" style="background:#000">
+        <div class="island"></div>
+        <div class="status" style="color:#fff"><span>9:41</span><span class="icons">●●● <span class="bar"></span></span></div>
+        <div class="nav"><div class="glass-btn">✕</div><div class="title" style="color:#fff">Verify ID</div><div class="glass-btn" style="font-size:14px">⚙︎</div></div>
+        <div class="verdict bad" style="margin-top:6px">
+          <div class="big">✕ Not accepted</div>
+          <div class="why">This code was created <b>4 min 12 s ago</b>. It is probably a screenshot or a photo of another phone. Ask the holder to open their live ID.</div>
+        </div>
+        <div class="person-strip" style="opacity:.6">
+          <div class="headshot sq" style="width:64px;height:78px;filter:grayscale(1)"></div>
+          <div>
+            <div style="font-size:18px;font-weight:700">Ingrid Lindqvist</div>
+            <div style="color:#98989f;font-size:13px;margin-top:3px">m.10432 · SWE</div>
+            <div style="color:#ff9f95;font-size:12.5px;margin-top:6px">Identity is genuine, presentation is not live</div>
+          </div>
+        </div>
+        <div class="checks">
+          <div class="check"><span class="st ok">✓</span>Issuer signature<span class="d">valid</span></div>
+          <div class="check"><span class="st ok">✓</span>Device signature<span class="d">valid</span></div>
+          <div class="check"><span class="st bad">✕</span>Code freshness<span class="d">252 s · window ±20 s</span></div>
+          <div class="check"><span class="st warn">!</span>Same code scanned before<span class="d">Desk 1 · 14:03</span></div>
+        </div>
+        <div style="margin:16px 16px 0;background:#1c1c1e;border-radius:18px;padding:12px 16px;font-size:13.5px;color:#c7c7cc;line-height:1.4">
+          Event policy: <b style="color:#fff">Strict</b>, live codes only, static Wallet passes rejected. <span style="color:#9ec1ff">Change</span>
+        </div>
+        <div class="home-ind light"></div>
+      </div>
+      <figcaption><b>D2 · Screenshot or photo detected</b>
+        The signatures are fine but the time step is stale, so this is a replay. Officials see the photo de-emphasised, which helps them decide whether to ask for the live ID. The replay cache also flags the same code seen earlier at another desk. Policy (strict, standard or lenient) is set per event in core-data and cached on the verifier.
+      </figcaption>
+    </figure>
+
+    <!-- D3 Apple wallet pass -->
+    <figure>
+      <div class="phone dark wallet-bg">
+        <div class="island"></div>
+        <div class="status" style="color:#fff"><span>9:41</span><span class="icons">●●● <span class="bar"></span></span></div>
+        <div class="nav"><div style="color:#0a84ff;font-size:17px">Done</div><div></div><div class="glass-btn" style="font-size:15px">⋯</div></div>
+        <div class="pkpass" style="margin-top:10px">
+          <div class="hdr">
+            <div style="display:flex;align-items:center;gap:8px;font-weight:600;font-size:15px"><div class="mark" style="width:26px;height:26px"><i></i><i class="c"></i><i></i><i></i><i class="c2"></i><i></i><i></i><i class="c3"></i><i></i></div>IJRU</div>
+            <div style="text-align:right"><div class="lbl">Member</div><div class="val">m.10432</div></div>
+          </div>
+          <div style="display:flex;justify-content:space-between;padding:6px 16px 14px">
+            <div><div class="lbl">Name</div><div style="font-size:24px;font-weight:500">Ingrid Lindqvist</div></div>
+            <div class="headshot" style="width:60px;height:60px;border-radius:8px"></div>
+          </div>
+          <div style="display:flex;gap:24px;padding:0 16px 16px">
+            <div><div class="lbl">Sport nationality</div><div class="val">Sweden</div></div>
+            <div><div class="lbl">Issued by</div><div class="val">IJRU</div></div>
+          </div>
+          <div style="background:#fff;margin:6px auto 16px;border-radius:8px;padding:10px;width:max-content">
+            <svg class="qr" data-seed="33" width="180" height="180"></svg>
+          </div>
+          <div style="text-align:center;font-size:12px;color:#8e8e93;padding-bottom:16px">Open FlowScore for your live ID</div>
+        </div>
+        <div style="padding:18px 30px;color:#98989f;font-size:13px;line-height:1.45">
+          A <b style="color:#fff">generic pkpass</b> signed with the <code>pass.sport.ijru.member</code> Pass Type ID. The QR is a “static tier” credential, re-issued every 7 days through the PassKit web service (APNs push). The back of the pass links into the app via universal link.
+        </div>
+        <div class="home-ind light"></div>
+      </div>
+      <figcaption><b>D3 · Apple Wallet pass</b>
+        Apple Wallet has no rotating barcodes, so the pass is clearly the lower-assurance option. Verifiers label it amber and strict events reject it. NFC from Apple Wallet would need Apple's VAS certificate (approval not guaranteed) and VAS-capable terminals, so it is phase 5 at the earliest.
+      </figcaption>
+    </figure>
+  </div>
+</section>
+
+<script>
+  // Deterministic fake QR (version-10-ish, 57 modules) — placeholder only.
+  function rng(seed) { let s = seed * 9301 + 49297; return () => (s = (s * 9301 + 49297) % 233280) / 233280; }
+  document.querySelectorAll("svg.qr").forEach((svg) => {
+    const N = 49, size = +svg.getAttribute("width"), m = size / N, r = rng(+svg.dataset.seed || 1);
+    const ns = "http://www.w3.org/2000/svg";
+    const rect = (x, y, w, h, fill, rx = 0) => { const e = document.createElementNS(ns, "rect");
+      Object.entries({ x, y, width: w, height: h, fill, rx }).forEach(([k, v]) => e.setAttribute(k, v)); svg.appendChild(e); };
+    const finder = (cx, cy) => { rect(cx*m, cy*m, 7*m, 7*m, "#111118", m*1.6); rect((cx+1)*m, (cy+1)*m, 5*m, 5*m, "#fff", m*1.1); rect((cx+2)*m, (cy+2)*m, 3*m, 3*m, "#111118", m*.8); };
+    const inFinder = (x, y) => (x < 8 && y < 8) || (x > N-9 && y < 8) || (x < 8 && y > N-9);
+    for (let y = 0; y < N; y++) for (let x = 0; x < N; x++) {
+      if (inFinder(x, y)) continue;
+      if (r() > 0.52) rect(x*m + m*.06, y*m + m*.06, m*.88, m*.88, "#111118", m*.28);
+    }
+    finder(0, 0); finder(N-7, 0); finder(0, N-7);
+    // centre mark
+    const c = (N/2 - 3.5) * m; rect(c - m, c - m, 9*m, 9*m, "#fff", m*2);
+    rect(c, c, 7*m, 7*m, "#111118", m*1.6);
+    [[1,0,"#d85a30"],[1,1,"rgba(216,90,48,.55)"],[1,2,"rgba(216,90,48,.25)"]].forEach(([cx,cy,f]) =>
+      rect(c + (cx*2.2+0.4)*m, c + (cy*2.2+0.4)*m, 1.9*m, 1.9*m, f, m*.4));
+  });
+</script>
+</body>
+</html>
