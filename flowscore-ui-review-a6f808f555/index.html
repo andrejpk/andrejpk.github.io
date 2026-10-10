@@ -67,7 +67,7 @@
   <div class="panel">
     <h3>Main themes</h3>
     <ol>
-      <li><b>The app doesn't look like FlowScore.</b> The icon is ink with a coral "live" column. The app uses a generic blue, a green "live" colour and the platform's default tab colour.</li>
+      <li><b>The app doesn't use its own colours.</b> Coral from the icon becomes the accent for actions, selection and the tab bar. Green and the radio icon stay the "live" signal. Blue, which coral replaces as the main colour, moves to "Final" results.</li>
       <li><b>Real data breaks the layouts.</b> Results columns truncate. Event names like "DDSR 11-12, 12-15, 16+, 30+…" wrap to four lines. Competition titles wrap to two lines.</li>
       <li><b>There's too much header.</b> The competition header stays on top of every detail screen. Its ✕ means "switch competition", not "close".</li>
       <li><b>Floating overlays hide content.</b> The live-now pill covers rows on every tab, and the "Back to…" banner covers the top of the heat list.</li>
@@ -80,7 +80,6 @@
       <li><b>Schedule renders blank on Android</b> (production 1.4.0, on a competition with a live session). No day tabs, list or empty state, and no errors in logcat.</li>
       <li><b>The account dropdown stays open after deep-link navigation</b> and sits on top of other screens.</li>
       <li><b>The OAuth redirect route sends you to a 404.</b> It still targets <code>/(tabs)</code>, which no longer exists.</li>
-      <li><b>The QR scan screen has no entry point</b> anywhere in the UI.</li>
       <li><b>Dark-mode cards glow white</b> because the card shadow uses the text colour.</li>
     </ul>
   </div>
@@ -92,8 +91,8 @@
       <li><b>Core screens:</b> Schedule, heats and results (02–05).</li>
       <li><b>Everything else:</b> the home screen, athlete page, settings and account menu.</li>
     </ol>
-    <h3 style="margin-top:18px">Open decision</h3>
-    <p>Should the accent change from blue to brand coral? Plain coral <code>#D85A30</code> with white text is only 3.9:1, so filled buttons and pills use <code>#C24E22</code> (4.8:1). Most layout changes work either way.</p>
+    <h3 style="margin-top:18px">Colour roles</h3>
+    <p><b>Coral</b> is the accent; filled buttons use <code>#C24E22</code> so white text passes contrast. <b>Green with the radio icon</b> means live and nothing else. <b>Blue</b> marks final results. Purple and amber stay for Competing and Judging. Gold, silver and bronze mark the top three in results.</p>
   </div>
 </div>
 
@@ -119,7 +118,7 @@
 <section class="board" id="b2"><h2>02 · Competition shell &amp; Schedule</h2><a href="boards/b2.webp"><img src="boards/b2.webp" alt="Current vs proposed schedule" loading="lazy"></a></section>
 <section class="board" id="b3"><h2>03 · Session → heat sheet</h2><a href="boards/b3.webp"><img src="boards/b3.webp" alt="Current vs proposed heat sheet" loading="lazy"></a></section>
 <section class="board" id="b4"><h2>04 · Results — event browser</h2><a href="boards/b4.webp"><img src="boards/b4.webp" alt="Current vs proposed results list" loading="lazy"></a></section>
-<section class="board" id="b5"><h2>05 · Results — event detail</h2><a href="boards/b5.webp"><img src="boards/b5.webp" alt="Current vs proposed results detail with podium" loading="lazy"></a></section>
+<section class="board" id="b5"><h2>05 · Results — event detail</h2><a href="boards/b5.webp"><img src="boards/b5.webp" alt="Current vs proposed results detail with medal icons" loading="lazy"></a></section>
 <section class="board" id="b6"><h2>06 · Teams → athlete</h2><a href="boards/b6.webp"><img src="boards/b6.webp" alt="Current vs proposed athlete page and team roster" loading="lazy"></a></section>
 <section class="board" id="b7"><h2>07 · Empty, signed-out &amp; error states</h2><a href="boards/b7.webp"><img src="boards/b7.webp" alt="Current vs proposed Me tab signed out and competition-unavailable state" loading="lazy"></a></section>
 <section class="board" id="b8"><h2>08 · Settings</h2><a href="boards/b8.webp"><img src="boards/b8.webp" alt="Current vs proposed settings" loading="lazy"></a></section>
